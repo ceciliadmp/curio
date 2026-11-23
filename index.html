@@ -2007,7 +2007,7 @@ async function loadDbArticles(){
   if(!c.supabaseUrl||!c.supabaseAnonKey||!window.CurioRender) return;
   try{
     const url=c.supabaseUrl.replace(/\/$/,'')+'/rest/v1/articles?select=slug,title,subtitle,display_title,display_subtitle,cover_url,cover_focal_x,cover_focal_y,tags,reading_minutes,content,published_at&status=eq.published&order=published_at.desc';
-    const r=await fetch(url,{headers:{apikey:c.supabaseAnonKey,Authorization:'Bearer '+c.supabaseAnonKey}});
+    const r=await fetch(url,{headers:{apikey:c.supabaseAnonKey}});
     if(!r.ok) return;
     const rows=await r.json();
     DB_ARTICLES=rows.filter(x=>x.slug).map(x=>({ id:x.slug, db:true, tag:(x.tags&&x.tags[0])||'Artigo', min:x.reading_minutes||1,
