@@ -222,3 +222,7 @@ dialog.pub::backdrop{background:rgba(26,21,85,.45)}
 .author-fields input:focus{box-shadow:0 2px 0 var(--anil-300)}
 
 [hidden]{display:none!important}
+
+/* secondary button: lavanda fill, anil text */
+.ad-btn.secondary{background:var(--anil-100);color:var(--anil)}
+.ad-btn.secondary:hover{background:var(--anil-200)}

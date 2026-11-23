@@ -158,8 +158,8 @@ ${y}`}var ue=class extends Error{constructor({message:e,code:t,cause:n,name:i}){
           Editado em ${B_(n.updated_at)} \xB7 ${n.reading_minutes||1} min de leitura</span>
       </a>
       <div class="ad-row-actions">
+        ${n.status==="published"&&n.slug?`<a class="ad-btn secondary sm" href="${ie(Wy(n.slug))}" target="_blank" rel="noopener">Abrir site</a>`:""}
         <a class="ad-btn ghost sm" href="#/editar/${ie(n.id)}">Editar</a>
-        ${n.status==="published"&&n.slug?`<a class="ad-btn ghost sm" href="${ie(Wy(n.slug))}" target="_blank" rel="noopener">Ver no site</a>`:""}
         <button class="ad-btn ghost sm danger" data-del="${ie(n.id)}" type="button">Excluir</button>
       </div></article>`).join(""),t.querySelectorAll("[data-del]").forEach(n=>n.onclick=async()=>{if(confirm("Excluir este artigo? Isso n\xE3o pode ser desfeito."))try{await ke.remove(n.dataset.del),Ky(),He("Artigo exclu\xEDdo.")}catch(i){He(ht(i),"err")}})}async function W_(r){let e;try{e=await ke.get(r)}catch{Ws('<main class="ad-list"><p class="ad-err">Artigo n\xE3o encontrado.</p><a href="#/">Voltar</a></main>');return}document.body.classList.add("zen");let t=()=>e.status==="published",n=t()&&e.draft?e.draft:e,i=()=>t()?e.draft?"Altera\xE7\xF5es n\xE3o publicadas":"Publicado":"Rascunho";Ws(`<main class="zen-wrap">
       <textarea class="zen-title" rows="1" placeholder="T\xEDtulo" aria-label="T\xEDtulo">${ie(n.title)}</textarea>

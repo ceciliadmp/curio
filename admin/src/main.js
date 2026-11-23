@@ -126,8 +126,8 @@ async function viewList() {
           Editado em ${fmtDate(r.updated_at)} · ${r.reading_minutes || 1} min de leitura</span>
       </a>
       <div class="ad-row-actions">
+        ${r.status === 'published' && r.slug ? `<a class="ad-btn secondary sm" href="${esc(siteUrl(r.slug))}" target="_blank" rel="noopener">Abrir site</a>` : ''}
         <a class="ad-btn ghost sm" href="#/editar/${esc(r.id)}">Editar</a>
-        ${r.status === 'published' && r.slug ? `<a class="ad-btn ghost sm" href="${esc(siteUrl(r.slug))}" target="_blank" rel="noopener">Ver no site</a>` : ''}
         <button class="ad-btn ghost sm danger" data-del="${esc(r.id)}" type="button">Excluir</button>
       </div></article>`).join('');
   box.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
