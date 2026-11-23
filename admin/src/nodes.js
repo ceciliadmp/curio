@@ -66,10 +66,12 @@ export const Figure = Node.create({
           <label>Texto alternativo <input type="text" placeholder="Descreva a imagem para quem não pode vê-la"></label>
         </div>
         <img alt="" draggable="false">
-        <div class="ed-fig-capwrap" contenteditable="false"><input class="ed-fig-cap" type="text" placeholder="Escreva uma legenda (opcional)" aria-label="Legenda da imagem"></div>`;
+        <div class="ed-fig-capwrap" contenteditable="false"><textarea class="ed-fig-cap" rows="1" placeholder="Escreva uma legenda (opcional)" aria-label="Legenda da imagem"></textarea></div>`;
       const img = dom.querySelector('img'), cap = dom.querySelector('.ed-fig-cap'),
         altBox = dom.querySelector('.ed-fig-alt'), altIn = altBox.querySelector('input');
 
+      /* the caption wraps: grow the textarea to fit its text */
+      const growCap = () => { cap.style.height = 'auto'; cap.style.height = cap.scrollHeight + 'px'; };
       const set = attrs => {
         const pos = getPos(); if (typeof pos !== 'number') return;
         editor.view.dispatch(editor.view.state.tr.setNodeMarkup(pos, undefined, { ...cur.attrs, ...attrs }));
@@ -80,6 +82,7 @@ export const Figure = Node.create({
         if (a.src && img.getAttribute('src') !== a.src) img.src = a.src;
         img.alt = a.alt || '';
         if (document.activeElement !== cap) cap.value = a.caption || '';
+        growCap(); requestAnimationFrame(growCap);
         if (document.activeElement !== altIn) altIn.value = a.alt || '';
         dom.querySelectorAll('[data-layout]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.layout === a.layout)));
         dom.querySelector('[data-alt]').classList.toggle('has', !!a.alt);
@@ -91,7 +94,7 @@ export const Figure = Node.create({
       dom.querySelector('[data-del]').addEventListener('click', () => {
         const pos = getPos(); if (typeof pos === 'number') editor.chain().focus().deleteRange({ from: pos, to: pos + cur.nodeSize }).run();
       });
-      cap.addEventListener('input', () => set({ caption: cap.value }));
+      cap.addEventListener('input', () => { growCap(); set({ caption: cap.value.replace(/\n/g, ' ') }); });
       altIn.addEventListener('input', () => set({ alt: altIn.value }));
       [cap, altIn].forEach(i => i.addEventListener('keydown', e => {
         if (e.key === 'Enter') { e.preventDefault(); const pos = getPos(); editor.chain().focus().setTextSelection(pos + cur.nodeSize).run(); }
@@ -104,7 +107,7 @@ export const Figure = Node.create({
         update(n) { if (n.type.name !== 'figure') return false; cur = n; paint(); return true; },
         selectNode() { dom.classList.add('is-selected'); },
         deselectNode() { dom.classList.remove('is-selected'); altBox.hidden = true; },
-        stopEvent(e) { return !!(e.target.closest && e.target.closest('input,button,label')); },
+        stopEvent(e) { return !!(e.target.closest && e.target.closest('input,textarea,button,label')); },
         ignoreMutation() { return true; }
       };
     };

@@ -196,3 +196,7 @@ dialog.pub::backdrop{background:rgba(26,21,85,.45)}
 .ed-fig-capwrap{display:block}
 .ed-fig-cap,.ed-fig-alt input{-webkit-user-select:text;user-select:text;-webkit-user-modify:read-write-plaintext-only;cursor:text}
 .ed-fig .ed-fig-cap{opacity:1!important}
+
+/* caption: centered, full content width, wraps onto new lines */
+.ed-fig .ed-fig-cap{display:block;width:100%;min-height:30px;margin-top:8px;padding:4px 0;border:0;resize:none;overflow:hidden;background:transparent;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;font:400 14px/22px "Open Sans",Arial,sans-serif;color:var(--suave)}
+.ed-fig .ed-fig-cap:focus{outline:none}
