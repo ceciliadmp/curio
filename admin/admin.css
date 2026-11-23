@@ -75,7 +75,8 @@ textarea.in{resize:none}
 .zen-body .ProseMirror{outline:none;min-height:40vh}
 .ProseMirror p.is-empty::before,.ProseMirror h2.is-empty::before,.ProseMirror h3.is-empty::before{content:attr(data-placeholder);float:left;height:0;pointer-events:none;color:#B3B3B3}
 .ProseMirror-selectednode.ed-embed,.ed-embed.is-selected,.ed-fig.is-selected img{outline:3px solid var(--anil-300);outline-offset:4px}
-.ProseMirror hr.ProseMirror-selectednode::before{color:var(--anil)}
+.ProseMirror hr{cursor:pointer}
+.ProseMirror hr.ProseMirror-selectednode{background:var(--anil-300);outline:none}
 .ProseMirror .pull-quote p{margin:0}
 @media (max-width:640px){.zen-title{font-size:32px;line-height:40px}.zen-sub{font-size:18px;line-height:28px}}
 
