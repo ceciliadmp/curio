@@ -191,3 +191,8 @@ dialog.pub::backdrop{background:rgba(26,21,85,.45)}
 #toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 #toast[data-kind="err"]{background:var(--erro)}
 #toast a{color:var(--lima)}
+
+/* caption and alt inputs must stay typeable inside the editor (Safari/Firefox) */
+.ed-fig-capwrap{display:block}
+.ed-fig-cap,.ed-fig-alt input{-webkit-user-select:text;user-select:text;-webkit-user-modify:read-write-plaintext-only;cursor:text}
+.ed-fig .ed-fig-cap{opacity:1!important}

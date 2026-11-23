@@ -29,7 +29,8 @@ export const Figure = Node.create({
   name: 'figure',
   group: 'block',
   atom: true,
-  draggable: true,
+  /* not draggable: Safari and Firefox block typing in inputs inside draggable elements (the caption) */
+  draggable: false,
   selectable: true,
   addAttributes() {
     return { src: { default: null }, alt: { default: '' }, caption: { default: '' }, layout: { default: 'normal' } };
@@ -64,8 +65,8 @@ export const Figure = Node.create({
         <div class="ed-fig-alt" contenteditable="false" hidden>
           <label>Texto alternativo <input type="text" placeholder="Descreva a imagem para quem não pode vê-la"></label>
         </div>
-        <img alt="">
-        <input class="ed-fig-cap" type="text" placeholder="Escreva uma legenda (opcional)" aria-label="Legenda da imagem">`;
+        <img alt="" draggable="false">
+        <div class="ed-fig-capwrap" contenteditable="false"><input class="ed-fig-cap" type="text" placeholder="Escreva uma legenda (opcional)" aria-label="Legenda da imagem"></div>`;
       const img = dom.querySelector('img'), cap = dom.querySelector('.ed-fig-cap'),
         altBox = dom.querySelector('.ed-fig-alt'), altIn = altBox.querySelector('input');
 
