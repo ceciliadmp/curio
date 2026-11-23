@@ -5,7 +5,7 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import BubbleMenu from '@tiptap/extension-bubble-menu';
 import FloatingMenu from '@tiptap/extension-floating-menu';
-import { PullQuote, Figure, Embed } from './nodes.js';
+import { PullQuote, Figure, Embed, TrailingNode } from './nodes.js';
 import { supabaseStore, localStore } from './store.js';
 
 const R = window.CurioRender;
@@ -181,7 +181,7 @@ async function viewEditor(id) {
       try {
         const src = await store.uploadImage(f);
         const chain = editor.chain().focus();
-        if (typeof pos === 'number') chain.insertContentAt(pos, { type: 'figure', attrs: { src, alt: '', caption: '', layout: 'normal' } }).run();
+        if (typeof pos === 'number') chain.insertContentAt(pos, [{ type: 'figure', attrs: { src, alt: '', caption: '', layout: 'normal' } }, { type: 'paragraph' }]).run();
         else chain.insertFigure({ src, alt: '', caption: '', layout: 'normal' }).run();
         pos = undefined;
       } catch (e) { toast(`Não deu pra enviar a imagem: ${esc(errMsg(e))}`, 'err'); setState('Erro no envio', 'err'); }
@@ -200,7 +200,7 @@ async function viewEditor(id) {
         validate: href => !!R.safeUrl(href, true) }),
       Placeholder.configure({ placeholder: ({ node, editor: ed }) => node.type.name === 'heading' ? 'Título da seção' :
         (ed.state.doc.childCount <= 1 ? 'Conte sua história…' : '') , showOnlyCurrent: true, includeChildren: false }),
-      PullQuote, Figure, Embed,
+      PullQuote, Figure, Embed, TrailingNode,
       BubbleMenu.configure({ element: bubbleEl, tippyOptions: { duration: 120, placement: 'top', maxWidth: 'none', onHidden: () => linkMode(false) },
         shouldShow: ({ editor: ed, state, from, to }) => {
           if (from === to || !ed.isEditable) return false;

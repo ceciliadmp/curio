@@ -1,5 +1,6 @@
 /* Custom editor blocks: pull quote, figure (image + layout + caption + alt), embed (video / rich / link). */
-import { Node, mergeAttributes } from '@tiptap/core';
+import { Node, Extension, mergeAttributes } from '@tiptap/core';
+import { Plugin, PluginKey } from '@tiptap/pm/state';
 
 const R = () => window.CurioRender;
 
@@ -108,7 +109,7 @@ export const Figure = Node.create({
     };
   },
   addCommands() {
-    return { insertFigure: attrs => ({ commands }) => commands.insertContent({ type: this.name, attrs }) };
+    return { insertFigure: attrs => ({ commands }) => commands.insertContent([{ type: this.name, attrs }, { type: 'paragraph' }]) };
   }
 });
 
@@ -147,5 +148,21 @@ export const Embed = Node.create({
   },
   addCommands() {
     return { insertEmbed: url => ({ commands }) => commands.insertContent([{ type: this.name, attrs: { url } }, { type: 'paragraph' }]) };
+  }
+});
+
+/* Keeps an empty paragraph at the end of the document, so there is always a place to type
+   after an image, embed or divider (and the "+" menu can appear there). */
+export const TrailingNode = Extension.create({
+  name: 'trailingNode',
+  addProseMirrorPlugins() {
+    return [new Plugin({
+      key: new PluginKey('trailingNode'),
+      appendTransaction: (_trs, _old, state) => {
+        const last = state.doc.lastChild;
+        if (last && last.type.name === 'paragraph') return null;
+        return state.tr.insert(state.doc.content.size, state.schema.nodes.paragraph.create());
+      }
+    })];
   }
 });
