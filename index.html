@@ -2014,7 +2014,7 @@ const ARTICLE_BANDS = { 'botao-de-cancelar':'#D3F34F', 'plano-do-meio':'#E2DFFB'
 /* Artigos publicados pelo admin (Supabase). */
 let DB_ARTICLES = [];
 const allArticles = () => DB_ARTICLES; /* só os artigos publicados pelo admin */
-const fmtPub = iso => { const d=new Date(iso); return isNaN(d)?'':d.toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'}); };
+const fmtPub = iso => { const d=new Date(iso); return isNaN(d)?'':d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}); };
 const escH = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function loadDbArticles(){
   const c=window.CURIO_CONFIG||{};
