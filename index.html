@@ -2011,6 +2011,7 @@ const ARTICLE_BANDS = { 'botao-de-cancelar':'#D3F34F', 'plano-do-meio':'#E2DFFB'
 /* Artigos publicados pelo admin (Supabase). */
 let DB_ARTICLES = [];
 const allArticles = () => DB_ARTICLES; /* só os artigos publicados pelo admin */
+const fmtPub = iso => { const d=new Date(iso); return isNaN(d)?'':d.toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'}); };
 const escH = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function loadDbArticles(){
   const c=window.CURIO_CONFIG||{};
@@ -2022,7 +2023,7 @@ async function loadDbArticles(){
     const rows=await r.json();
     DB_ARTICLES=rows.filter(x=>x.slug).map(x=>({ id:x.slug, db:true, tag:(x.tags&&x.tags[0])||'Artigo', min:x.reading_minutes||1,
       title:x.display_title||x.title, desc:x.display_subtitle||x.subtitle||'', articleTitle:x.title, articleSub:x.subtitle||'',
-      cover:CurioRender.safeImg(x.cover_url), fx:+x.cover_focal_x||50, fy:+x.cover_focal_y||50, doc:x.content, related:[] }));
+      cover:CurioRender.safeImg(x.cover_url), fx:+x.cover_focal_x||50, fy:+x.cover_focal_y||50, doc:x.content, related:[], published:x.published_at }));
   }catch(e){ /* sem conexão com o banco: a lista fica vazia */ }
   finally{
     window.__curioDbLoaded=true;
@@ -2047,7 +2048,7 @@ function viewArticle(a){
     const t=escH(a.articleTitle);
     return `<article class="view page article bg-50">
     ${pageHead(t,escH(a.articleSub),`<a href="#">Início</a><span>/</span><a href="#artigos">Artigos</a><span>/</span><span>${t}</span>`)}
-    <p class="art-meta">${escH(a.tag)} · ${a.min} min de leitura</p>
+    <p class="art-meta">${escH(a.tag)} · ${a.min} min de leitura${a.published?` · <time datetime="${escH(a.published)}">Publicado em ${fmtPub(a.published)}</time>`:''}</p>
     <div class="art-read"><div class="rich">${CurioRender.toHTML(a.doc)}</div></div>
     ${others.length?`<section class="art-more"><h2>Continue lendo</h2><div class="agrid">${others.map(articleCard).join('')}</div></section>`:''}
   </article>`;
