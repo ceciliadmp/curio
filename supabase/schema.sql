@@ -37,8 +37,10 @@ create table if not exists public.articles (
   reading_minutes  integer not null default 1,
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now(),
-  published_at     timestamptz
+  published_at     timestamptz,
+  draft            jsonb -- edições ainda não publicadas de um artigo já publicado
 );
+alter table public.articles add column if not exists draft jsonb;
 
 create or replace function public.touch_updated_at()
 returns trigger language plpgsql as $$
@@ -82,7 +84,10 @@ create policy "admins apagam imagens" on storage.objects
 
 -- 0. Permissões da API (projetos novos do Supabase não liberam tabelas novas sozinhos)
 grant usage on schema public to anon, authenticated;
-grant select on public.articles to anon;
+revoke select on public.articles from anon;
+grant select (id, slug, title, subtitle, content, status, display_title, display_subtitle, cover_url,
+  cover_focal_x, cover_focal_y, tags, word_count, reading_minutes, created_at, updated_at, published_at)
+  on public.articles to anon; -- o rascunho de edição (draft) não fica visível para o público
 grant select, insert, update, delete on public.articles to authenticated;
 grant select on public.admins to authenticated;
 grant execute on function public.is_admin() to anon, authenticated;

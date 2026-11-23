@@ -113,9 +113,11 @@ async function viewList() {
       <a class="ad-row-main" href="#/editar/${esc(r.id)}">
         <span class="ad-row-title">${esc(r.title || 'Sem título')}</span>
         <span class="ad-row-meta"><span class="chip ${r.status}">${r.status === 'published' ? 'Publicado' : 'Rascunho'}</span>
+          ${r.status === 'published' && r.pending != null ? '<span class="chip pending">Alterações não publicadas</span>' : ''}
           Editado em ${fmtDate(r.updated_at)} · ${r.reading_minutes || 1} min de leitura</span>
       </a>
       <div class="ad-row-actions">
+        <a class="ad-btn ghost sm" href="#/editar/${esc(r.id)}">Editar</a>
         ${r.status === 'published' && r.slug ? `<a class="ad-btn ghost sm" href="${esc(siteUrl(r.slug))}" target="_blank" rel="noopener">Ver no site</a>` : ''}
         <button class="ad-btn ghost sm danger" data-del="${esc(r.id)}" type="button">Excluir</button>
       </div></article>`).join('');
@@ -130,15 +132,20 @@ async function viewEditor(id) {
   let art;
   try { art = await store.get(id); } catch (e) { shell(`<main class="ad-list"><p class="ad-err">Artigo não encontrado.</p><a href="#/">Voltar</a></main>`); return; }
   document.body.classList.add('zen');
+  /* a published article is edited in its draft copy; the live version only changes on "Atualizar" */
+  const live = () => art.status === 'published';
+  const src = live() && art.draft ? art.draft : art;
+  const idleState = () => live() ? (art.draft ? 'Alterações não publicadas' : 'Publicado') : 'Rascunho';
   shell(`<main class="zen-wrap">
-      <textarea class="zen-title" rows="1" placeholder="Título" aria-label="Título">${esc(art.title)}</textarea>
-      <textarea class="zen-sub" rows="1" placeholder="Subtítulo (opcional)" aria-label="Subtítulo">${esc(art.subtitle)}</textarea>
+      <textarea class="zen-title" rows="1" placeholder="Título" aria-label="Título">${esc(src.title)}</textarea>
+      <textarea class="zen-sub" rows="1" placeholder="Subtítulo (opcional)" aria-label="Subtítulo">${esc(src.subtitle)}</textarea>
       <div id="ed" class="rich zen-body"></div>
       <input type="file" id="file" accept="image/*" hidden>
     </main>
     <div id="bubble" class="bubble" role="toolbar" aria-label="Formatação"></div>
     <div id="plus" class="plus"></div>`,
-    { right: `<span class="save-state" id="save-state" aria-live="polite">${art.status === 'published' ? 'Publicado' : 'Rascunho'}</span>
+    { right: `<span class="save-state" id="save-state" aria-live="polite">${idleState()}</span>
+      <button class="ad-btn ghost sm danger" id="discard" type="button" ${live() && art.draft ? '' : 'hidden'}>Descartar alterações</button>
       <a class="ad-btn ghost sm" href="#/">${ICON.back}Artigos</a>
       <button class="ad-btn sm" id="publish" type="button">${art.status === 'published' ? 'Atualizar' : 'Publicar'}</button>` });
 
@@ -162,7 +169,12 @@ async function viewEditor(id) {
     if (!dirty) return;
     if (saving) { pending = true; return; }
     saving = true; dirty = false; setState('Salvando…', 'busy');
-    try { await store.save(art.id, snapshot()); setState('Salvo', 'ok'); }
+    try {
+      const snap = snapshot();
+      await store.save(art.id, snap, live());
+      if (live()) { art.draft = snap; document.getElementById('discard').hidden = false; setState('Salvo · não publicado', 'ok'); }
+      else setState('Salvo', 'ok');
+    }
     catch (e) { dirty = true; setState('Não foi possível salvar', 'err'); toast(`Não foi possível salvar: ${esc(errMsg(e))}`, 'err'); }
     saving = false;
     if (pending) { pending = false; flush(); }
@@ -193,7 +205,7 @@ async function viewEditor(id) {
   const bubbleEl = document.getElementById('bubble'), plusEl = document.getElementById('plus');
   editor = new Editor({
     element: document.getElementById('ed'),
-    content: art.content && art.content.type === 'doc' ? art.content : { type: 'doc', content: [{ type: 'paragraph' }] },
+    content: src.content && src.content.type === 'doc' ? src.content : { type: 'doc', content: [{ type: 'paragraph' }] },
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] }, blockquote: false, codeBlock: false, code: false, strike: false }),
       Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
@@ -307,8 +319,16 @@ async function viewEditor(id) {
     openPublish(art, snapshot(), updated => {
       art = updated;
       document.getElementById('publish').textContent = updated.status === 'published' ? 'Atualizar' : 'Publicar';
-      setState(updated.status === 'published' ? 'Publicado' : 'Rascunho', 'ok');
+      document.getElementById('discard').hidden = true;
+      setState(idleState(), 'ok');
     });
+  });
+
+  document.getElementById('discard').addEventListener('click', async () => {
+    if (!confirm('Descartar as alterações e voltar para a versão que está no site?')) return;
+    clearTimeout(timer); dirty = false;
+    try { await store.discardDraft(art.id); toast('Alterações descartadas.'); route(); }
+    catch (e) { toast(`Não deu pra descartar: ${esc(errMsg(e))}`, 'err'); }
   });
 
   if (!art.title) titleEl.focus(); else editor.commands.focus('end');
