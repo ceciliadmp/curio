@@ -8,6 +8,7 @@
 <title>curió · Design que se aprende na troca</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Open+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 /* Layout: light-grey canvas, rounded flat cards, sans titles with one serif-italic word.
@@ -1129,6 +1130,26 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 :root[data-theme="dark"] .art-meta time{color:#E2DFFB}
 /* article body: corpo-grande (18/30), same as the editor */
 .art-read p,.art-read li,.art-read .rich p,.art-read .rich li{font-size:18px!important;line-height:30px!important}
+/* ===== texto do artigo em Literata (style guide: .cu-artigo) ===== */
+.art-read{display:block!important}
+.art-read>p,.art-read>ul>li,.art-read>ol>li,.art-read .rich p,.art-read .rich li{font-family:"Literata",Georgia,serif!important;font-size:19px!important;line-height:32px!important;font-weight:400!important;color:#1A1555}
+.art-read>p,.art-read .rich>p{margin:0 0 24px!important}
+.art-read>ul,.art-read>ol{margin:0 0 24px!important}
+.art-read>p strong,.art-read li strong,.art-read .rich strong{font-weight:600!important}
+.art-read>p a,.art-read li a,.art-read .rich a{color:#3C34C1!important;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.art-read>p a:hover,.art-read li a:hover,.art-read .rich a:hover{color:#2B23A4!important;text-decoration-thickness:2px}
+.art-read>h2,.art-read .rich h2{font:600 32px/40px "Poppins",system-ui,sans-serif!important;margin:48px 0 16px!important;color:#1A1555}
+.art-read>h3,.art-read .rich h3{font:600 24px/32px "Poppins",system-ui,sans-serif!important;margin:32px 0 12px!important;color:#1A1555}
+.art-read>h2:first-child,.art-read .rich>h2:first-child{margin-top:0!important}
+.art-read .rich .pull-quote,.art-read .rich .pull-quote p{font:italic 400 24px/36px "Literata",Georgia,serif!important;color:#2B23A4!important}
+.art-read .rich .pull-quote{margin:32px 0!important}
+.art-read figcaption{font:400 16px/24px "Open Sans",Arial,sans-serif!important;color:#4D4D4D!important}
+.art-read mark{background:#D3F34F;color:inherit;padding:0 2px}
+.art-read .art-take{margin-top:32px!important}
+.art-read .art-rel{margin-top:32px!important}
+:root[data-theme="dark"] .art-read>p,:root[data-theme="dark"] .art-read li,:root[data-theme="dark"] .art-read .rich p,:root[data-theme="dark"] .art-read>h2,:root[data-theme="dark"] .art-read .rich h2,:root[data-theme="dark"] .art-read>h3,:root[data-theme="dark"] .art-read .rich h3{color:#FCFCFC}
+:root[data-theme="dark"] .art-read>p a,:root[data-theme="dark"] .art-read li a,:root[data-theme="dark"] .art-read .rich a,:root[data-theme="dark"] .art-read .rich .pull-quote p{color:#D3F34F!important}
+@media (max-width:599px){.art-read>p,.art-read>ul>li,.art-read .rich p,.art-read .rich li{font-size:18px!important;line-height:30px!important}.art-read>h2,.art-read .rich h2{font-size:26px!important;line-height:34px!important}}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}

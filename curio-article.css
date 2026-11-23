@@ -1,20 +1,22 @@
 /* curió · estilos do conteúdo de artigo (site e editor) */
-.rich{--rich-ink:#1A1555;--rich-soft:#4D4D4D;--rich-accent:#3C34C1;color:var(--rich-ink);font:400 18px/30px "Open Sans",Arial,sans-serif}
-.rich>*{margin:0 0 20px}
-.rich p{margin:0 0 20px}
-.rich h2{font:600 28px/36px "Poppins",system-ui,sans-serif;margin:40px 0 12px;letter-spacing:0}
-.rich h3{font:600 22px/30px "Poppins",system-ui,sans-serif;margin:32px 0 8px;letter-spacing:0}
-.rich a{color:var(--rich-accent);text-decoration:underline;text-underline-offset:3px}
-.rich strong{font-weight:700}
+.rich{--rich-ink:#1A1555;--rich-soft:#4D4D4D;--rich-accent:#3C34C1;color:var(--rich-ink);font:400 19px/32px "Literata",Georgia,serif}
+.rich>*{margin:0 0 24px}
+.rich p{margin:0 0 24px}
+.rich strong{font-weight:600}
+.rich mark{background:#D3F34F;color:inherit;padding:0 2px}
+.rich h2{font:600 32px/40px "Poppins",system-ui,sans-serif;margin:48px 0 16px;letter-spacing:0}
+.rich h3{font:600 24px/32px "Poppins",system-ui,sans-serif;margin:32px 0 12px;letter-spacing:0}
+.rich a{color:var(--rich-accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.rich a:hover{color:#2B23A4;text-decoration-thickness:2px}
 .rich ul,.rich ol{padding-left:1.4em}
 .rich li{margin:0 0 8px}
 .rich li>p{margin:0}
-.rich .pull-quote{margin:40px 0;padding:0;border:0;text-align:center;font:500 26px/38px "Poppins",system-ui,sans-serif;color:var(--rich-accent)}
+.rich .pull-quote{margin:32px 0;padding:0;border:0;text-align:center;font:italic 400 24px/36px "Literata",Georgia,serif;color:#2B23A4}
 .rich .pull-quote p{margin:0}
 .rich hr,.rich hr.divider{border:0;height:2px;margin:48px 0;background:#E2DFFB;border-radius:2px}
 .rich .fig{margin:32px 0}
 .rich .fig img{display:block;width:100%;height:auto;border-radius:16px}
-.rich .fig figcaption{margin-top:8px;font:400 14px/22px "Open Sans",Arial,sans-serif;color:var(--rich-soft);text-align:center}
+.rich .fig figcaption{margin-top:8px;font:400 16px/24px "Open Sans",Arial,sans-serif;color:var(--rich-soft);text-align:center}
 @media (min-width:900px){
   .rich .fig--outset{margin-left:-80px;margin-right:-80px}
 }
