@@ -1182,6 +1182,21 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .contact-social .ic{--icbg:#FCFCFC!important}
 .contact-social a:hover .ic{--icbg:#D3F34F!important}
 :root[data-theme="dark"] .contact-social a{color:#FCFCFC!important}
+/* Contato: how to submit an article */
+.submit{display:grid;gap:16px;margin-top:40px;justify-items:start}
+.submit h2{font:600 24px/32px "Poppins",system-ui,sans-serif!important;margin:0;color:#1A1555}
+.submit-lead{margin:0;font:400 16px/24px "Open Sans",Arial,sans-serif;color:#4D4D4D}
+.submit-steps{list-style:none;margin:8px 0 8px;padding:0;display:grid;gap:16px;width:100%}
+@media (min-width:860px){.submit-steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.submit-steps li{display:grid;gap:8px;align-content:start;padding:24px;border-radius:16px;background:#FCFCFC;border:1.5px solid #E2DFFB}
+.submit-n{display:grid;place-items:center;width:36px;height:36px;border-radius:999px;background:#3C34C1;color:#FCFCFC;font:600 16px/1 "Poppins",system-ui,sans-serif;margin-bottom:4px}
+.submit-steps h3{font:600 18px/26px "Poppins",system-ui,sans-serif!important;margin:0;color:#1A1555}
+.submit-steps p{margin:0;font:400 16px/24px "Open Sans",Arial,sans-serif;color:#4D4D4D;overflow-wrap:anywhere}
+.submit-steps a{color:#3C34C1;text-decoration:underline;text-underline-offset:3px}
+:root[data-theme="dark"] .submit h2,:root[data-theme="dark"] .submit-steps h3{color:#FCFCFC}
+:root[data-theme="dark"] .submit-lead,:root[data-theme="dark"] .submit-steps p{color:#E2DFFB}
+:root[data-theme="dark"] .submit-steps li{background:#211B7E;border-color:#2B23A4}
+:root[data-theme="dark"] .submit-steps a{color:#D3F34F}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2180,6 +2195,16 @@ function viewContact(){
       </div>
       <div class="ab-shape">${SV(SHAPE.brilho('#3C34C1'))}</div>
     </div>
+    <section class="submit" aria-labelledby="submit-h">
+      <h2 id="submit-h">Quer publicar um artigo na curió?</h2>
+      <p class="submit-lead">A curió também é feita por quem escreve com a gente. Se você tem um texto sobre UX, produtos digitais ou o futuro do design, manda pra gente.</p>
+      <ol class="submit-steps">
+        <li><span class="submit-n" aria-hidden="true">1</span><h3>Envie seu texto</h3><p>Mande para <a href="mailto:contato.curiodesign@gmail.com">contato.curiodesign@gmail.com</a> com seu nome, sua cidade/estado e as imagens ou outras mídias do artigo.</p></li>
+        <li><span class="submit-n" aria-hidden="true">2</span><h3>A gente analisa</h3><p>Lemos com carinho e vemos se o texto está de acordo com a nossa linha editorial.</p></li>
+        <li><span class="submit-n" aria-hidden="true">3</span><h3>Publicamos</h3><p>Se estiver tudo certo, seu trabalho vai pro ar aqui na curió, com seu nome e sua cidade.</p></li>
+      </ol>
+      <a class="btn submit-btn" href="mailto:contato.curiodesign@gmail.com?subject=${encodeURIComponent('Artigo para a curió')}">Enviar meu artigo ${ARROW}</a>
+    </section>
   </section>`;
 }
 
