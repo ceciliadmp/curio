@@ -2126,7 +2126,7 @@ function viewArticle(a){
 /* ---------- Artigos ---------- */
 function viewArticles(){
   return `<section class="view page bg-50">
-    ${pageHead('Artigos','Textos curtos que começam por um exemplo real e terminam com um argumento pra levar pro próximo review.')}
+    ${pageHead('Artigos','Um espaço para ler sobre UX, produtos digitais e para pensar o futuro do design.')}
     ${allArticles().length?`<div class="agrid">${allArticles().map(articleCard).join('')}</div>`:(window.__curioDbLoaded?'<p class="art-empty">Os primeiros artigos estão a caminho. Volta daqui a pouco!</p>':'<p class="art-empty">Carregando artigos…</p>')}
   </section>`;
 }
