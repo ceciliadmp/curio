@@ -1,0 +1,85 @@
+/* Data layer: Supabase when configured, otherwise a local demo store (localStorage). */
+import { createClient } from '@supabase/supabase-js';
+
+const EMPTY_DOC = { type: 'doc', content: [{ type: 'paragraph' }] };
+const LIST_FIELDS = 'id,title,subtitle,status,slug,updated_at,published_at,reading_minutes,display_title,cover_url';
+
+function unique(base, taken) {
+  let s = base, i = 2;
+  while (taken.has(s)) s = `${base}-${i++}`;
+  return s;
+}
+
+/* ---------- Supabase ---------- */
+export function supabaseStore(url, key) {
+  const sb = createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true } });
+  const must = ({ data, error }) => { if (error) throw error; return data; };
+
+  return {
+    demo: false,
+    async session() { const { data } = await sb.auth.getSession(); return data.session; },
+    async signIn(email, password) { must(await sb.auth.signInWithPassword({ email, password })); },
+    async signOut() { await sb.auth.signOut(); },
+    async isAdmin() {
+      const s = await this.session(); if (!s) return false;
+      const rows = must(await sb.from('admins').select('user_id').eq('user_id', s.user.id).limit(1));
+      return rows.length > 0;
+    },
+    async list() { return must(await sb.from('articles').select(LIST_FIELDS).order('updated_at', { ascending: false })); },
+    async get(id) { return must(await sb.from('articles').select('*').eq('id', id).single()); },
+    async create() { return must(await sb.from('articles').insert({ content: EMPTY_DOC }).select('*').single()); },
+    async save(id, patch) { return must(await sb.from('articles').update(patch).eq('id', id).select('id,updated_at').single()); },
+    async remove(id) { must(await sb.from('articles').delete().eq('id', id)); },
+    async publish(id, meta) {
+      const others = must(await sb.from('articles').select('slug').neq('id', id).not('slug', 'is', null));
+      const slug = unique(meta.slug, new Set(others.map(r => r.slug)));
+      return must(await sb.from('articles').update({ ...meta, slug, status: 'published' }).eq('id', id).select('*').single());
+    },
+    async unpublish(id) { return must(await sb.from('articles').update({ status: 'draft' }).eq('id', id).select('*').single()); },
+    async uploadImage(file) {
+      const s = await this.session();
+      const ext = (file.name && file.name.split('.').pop() || file.type.split('/')[1] || 'png').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const path = `${s.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      must(await sb.storage.from('article-images').upload(path, file, { contentType: file.type, cacheControl: '31536000' }));
+      return sb.storage.from('article-images').getPublicUrl(path).data.publicUrl;
+    }
+  };
+}
+
+/* ---------- Local demo ---------- */
+export function localStore() {
+  const KEY = 'curio-admin-demo';
+  const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } };
+  const write = rows => { try { localStorage.setItem(KEY, JSON.stringify(rows)); } catch (e) { throw new Error('O navegador não deixou salvar (armazenamento cheio ou bloqueado).'); } };
+  const now = () => new Date().toISOString();
+  const pick = r => Object.fromEntries(LIST_FIELDS.split(',').map(k => [k, r[k]]));
+
+  return {
+    demo: true,
+    async session() { return { user: { id: 'demo', email: 'demo' } }; },
+    async signIn() {},
+    async signOut() {},
+    async isAdmin() { return true; },
+    async list() { return read().sort((a, b) => b.updated_at.localeCompare(a.updated_at)).map(pick); },
+    async get(id) { const r = read().find(x => x.id === id); if (!r) throw new Error('Artigo não encontrado'); return r; },
+    async create() {
+      const r = { id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), title: '', subtitle: '', content: EMPTY_DOC,
+        status: 'draft', slug: null, display_title: null, display_subtitle: null, cover_url: null, cover_focal_x: 50, cover_focal_y: 50,
+        tags: [], word_count: 0, reading_minutes: 1, created_at: now(), updated_at: now(), published_at: null };
+      write([r, ...read()]); return r;
+    },
+    async save(id, patch) {
+      const rows = read(), r = rows.find(x => x.id === id); Object.assign(r, patch, { updated_at: now() }); write(rows); return { id, updated_at: r.updated_at };
+    },
+    async remove(id) { write(read().filter(x => x.id !== id)); },
+    async publish(id, meta) {
+      const rows = read(), r = rows.find(x => x.id === id);
+      const slug = unique(meta.slug, new Set(rows.filter(x => x.id !== id && x.slug).map(x => x.slug)));
+      Object.assign(r, meta, { slug, status: 'published', updated_at: now() }); write(rows); return r;
+    },
+    async unpublish(id) { const rows = read(), r = rows.find(x => x.id === id); r.status = 'draft'; r.updated_at = now(); write(rows); return r; },
+    uploadImage(file) {
+      return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(fr.error); fr.readAsDataURL(file); });
+    }
+  };
+}

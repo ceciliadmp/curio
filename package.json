@@ -1,0 +1,19 @@
+{
+  "name": "curio",
+  "private": true,
+  "description": "Site e admin da curió",
+  "scripts": {
+    "build:admin": "esbuild admin/src/main.js --bundle --minify --format=iife --target=es2019 --outfile=admin/admin.js"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10",
+    "@supabase/supabase-js": "2.119.0",
+    "@tiptap/core": "2.27.3",
+    "@tiptap/pm": "2.27.3",
+    "@tiptap/starter-kit": "2.27.3",
+    "@tiptap/extension-link": "2.27.3",
+    "@tiptap/extension-placeholder": "2.27.3",
+    "@tiptap/extension-bubble-menu": "2.27.3",
+    "@tiptap/extension-floating-menu": "2.27.3"
+  }
+}
