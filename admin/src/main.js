@@ -41,6 +41,15 @@ const errMsg = e => (e && (e.message || e.error_description)) || 'Algo deu errad
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
 const siteUrl = slug => `${location.origin}/#artigo-${encodeURIComponent(slug)}`;
 
+/* The last author used becomes the default for the next new article. */
+const AUTHOR_KEY = 'curio-last-author';
+function lastAuthor() {
+  try { const a = JSON.parse(localStorage.getItem(AUTHOR_KEY)) || {}; return { author_name: a.author_name || '', author_location: a.author_location || '', author_photo_url: a.author_photo_url || null }; }
+  catch (e) { return {}; }
+}
+function rememberAuthor(a) { try { localStorage.setItem(AUTHOR_KEY, JSON.stringify(a)); } catch (e) { /* ignore */ } }
+const initials = n => String(n || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+
 function destroyEditor() { if (editor) { editor.destroy(); editor = null; } }
 
 /* ======================= routing ======================= */
@@ -103,7 +112,7 @@ async function viewList() {
     { right: store.demo ? '' : '<button class="ad-btn ghost sm" id="out" type="button">Sair</button>' });
   const out = document.getElementById('out'); if (out) out.onclick = async () => { await store.signOut(); route(); };
   document.getElementById('new').onclick = async () => {
-    try { const r = await store.create(); location.hash = `#/editar/${r.id}`; } catch (e) { toast(errMsg(e), 'err'); }
+    try { const r = await store.create(lastAuthor()); location.hash = `#/editar/${r.id}`; } catch (e) { toast(errMsg(e), 'err'); }
   };
   let rows;
   try { rows = await store.list(); } catch (e) { document.getElementById('rows').innerHTML = `<p class="ad-err">Não deu pra carregar: ${esc(errMsg(e))}</p>`; return; }
@@ -140,6 +149,18 @@ async function viewEditor(id) {
       <textarea class="zen-title" rows="1" placeholder="Título" aria-label="Título">${esc(src.title)}</textarea>
       <textarea class="zen-sub" rows="1" placeholder="Subtítulo (opcional)" aria-label="Subtítulo">${esc(src.subtitle)}</textarea>
       <div id="ed" class="rich zen-body"></div>
+      <section class="zen-author" aria-label="Autor ou autora do artigo">
+        <p class="zen-author-label">Escrito por</p>
+        <div class="zen-author-row">
+          <button type="button" class="author-photo" title="Escolher foto" aria-label="Escolher foto do autor ou autora"></button>
+          <div class="author-fields">
+            <input class="author-name" type="text" placeholder="Nome do autor ou autora" aria-label="Nome do autor ou autora" maxlength="80" value="${esc(src.author_name || '')}">
+            <input class="author-loc" type="text" placeholder="Cidade/UF, ex.: Recife/PE" aria-label="Cidade e estado" maxlength="60" value="${esc(src.author_location || '')}">
+          </div>
+          <button type="button" class="author-photo-rm ad-btn ghost sm" hidden>Remover foto</button>
+        </div>
+        <input type="file" id="author-file" accept="image/*" hidden>
+      </section>
       <input type="file" id="file" accept="image/*" hidden>
     </main>
     <div id="bubble" class="bubble" role="toolbar" aria-label="Formatação"></div>
@@ -156,13 +177,36 @@ async function viewEditor(id) {
   titleEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); subEl.focus(); } });
   subEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); editor.commands.setTextSelection(1); editor.view.focus(); } });
 
+  /* ---- author ---- */
+  const nameIn = app.querySelector('.author-name'), locIn = app.querySelector('.author-loc'),
+    photoBtn = app.querySelector('.author-photo'), photoRm = app.querySelector('.author-photo-rm'), authorFile = document.getElementById('author-file');
+  let authorPhoto = src.author_photo_url || '';
+  function paintAuthor() {
+    photoBtn.innerHTML = authorPhoto ? `<img src="${esc(authorPhoto)}" alt="">` : (nameIn.value.trim() ? `<span>${esc(initials(nameIn.value))}</span>` : ICON.plus);
+    photoRm.hidden = !authorPhoto;
+  }
+  paintAuthor();
+  const authorChanged = () => { paintAuthor(); rememberAuthor({ author_name: nameIn.value.trim(), author_location: locIn.value.trim(), author_photo_url: authorPhoto || null }); queueSave(); };
+  nameIn.addEventListener('input', authorChanged);
+  locIn.addEventListener('input', authorChanged);
+  photoBtn.addEventListener('click', () => authorFile.click());
+  photoRm.addEventListener('click', () => { authorPhoto = ''; authorChanged(); });
+  authorFile.addEventListener('change', async () => {
+    const f = authorFile.files[0]; authorFile.value = ''; if (!f) return;
+    if (!/^image\//.test(f.type)) return;
+    setState('Enviando foto…', 'busy');
+    try { authorPhoto = await store.uploadImage(f); authorChanged(); }
+    catch (e) { toast(`Não deu pra enviar a foto: ${esc(errMsg(e))}`, 'err'); setState('Erro no envio', 'err'); }
+  });
+
   /* ---- autosave ---- */
   let timer = 0, saving = false, pending = false, dirty = false;
   function setState(t, kind) { state.textContent = t; state.dataset.kind = kind || ''; }
   function snapshot() {
     const content = editor.getJSON(), title = titleEl.value.trim(), subtitle = subEl.value.trim();
     const word_count = R.wordCount(content, title, subtitle);
-    return { title, subtitle, content, word_count, reading_minutes: R.readingMinutes(word_count) };
+    const author = { author_name: nameIn.value.trim(), author_location: locIn.value.trim(), author_photo_url: authorPhoto || null };
+    return { title, subtitle, content, word_count, reading_minutes: R.readingMinutes(word_count), ...author };
   }
   async function flush() {
     clearTimeout(timer);

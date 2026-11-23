@@ -33,7 +33,7 @@ export function supabaseStore(url, key) {
     },
     async list() { return must(await sb.from('articles').select(LIST_FIELDS + ',pending:draft->>title').order('updated_at', { ascending: false })); },
     async get(id) { return must(await sb.from('articles').select('*').eq('id', id).single()); },
-    async create() { return must(await sb.from('articles').insert({ content: EMPTY_DOC }).select('*').single()); },
+    async create(defaults = {}) { return must(await sb.from('articles').insert({ content: EMPTY_DOC, ...defaults }).select('*').single()); },
     async save(id, patch, live) { return must(await sb.from('articles').update(live ? { draft: patch } : patch).eq('id', id).select('id,updated_at').single()); },
     async discardDraft(id) { return must(await sb.from('articles').update({ draft: null }).eq('id', id).select('*').single()); },
     async remove(id) { must(await sb.from('articles').delete().eq('id', id)); },
@@ -73,10 +73,10 @@ export function localStore() {
     async isAdmin() { return true; },
     async list() { return read().sort((a, b) => b.updated_at.localeCompare(a.updated_at)).map(pick); },
     async get(id) { const r = read().find(x => x.id === id); if (!r) throw new Error('Artigo não encontrado'); return r; },
-    async create() {
-      const r = { id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), title: '', subtitle: '', content: EMPTY_DOC,
+    async create(defaults = {}) {
+      const r = { author_name: '', author_location: '', author_photo_url: null, id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), title: '', subtitle: '', content: EMPTY_DOC,
         status: 'draft', slug: null, display_title: null, display_subtitle: null, cover_url: null, cover_focal_x: 50, cover_focal_y: 50,
-        tags: [], word_count: 0, reading_minutes: 1, created_at: now(), updated_at: now(), published_at: null };
+        tags: [], word_count: 0, reading_minutes: 1, created_at: now(), updated_at: now(), published_at: null, ...defaults };
       write([r, ...read()]); return r;
     },
     async save(id, patch, live) {

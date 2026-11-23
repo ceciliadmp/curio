@@ -1150,6 +1150,18 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 :root[data-theme="dark"] .art-read>p,:root[data-theme="dark"] .art-read li,:root[data-theme="dark"] .art-read .rich p,:root[data-theme="dark"] .art-read>h2,:root[data-theme="dark"] .art-read .rich h2,:root[data-theme="dark"] .art-read>h3,:root[data-theme="dark"] .art-read .rich h3{color:#FCFCFC}
 :root[data-theme="dark"] .art-read>p a,:root[data-theme="dark"] .art-read li a,:root[data-theme="dark"] .art-read .rich a,:root[data-theme="dark"] .art-read .rich .pull-quote p{color:#D3F34F!important}
 @media (max-width:599px){.art-read>p,.art-read>ul>li,.art-read .rich p,.art-read .rich li{font-size:18px!important;line-height:30px!important}.art-read>h2,.art-read .rich h2{font-size:26px!important;line-height:34px!important}}
+/* author at the end of the article */
+.art-author{display:flex;align-items:center;gap:16px;margin-top:48px;padding-top:24px;border-top:2px solid #E2DFFB}
+.art-author-photo{flex:none;width:56px;height:56px;border-radius:999px;overflow:hidden;background:#EFEDFD;color:#3C34C1;display:grid;place-items:center;font:600 20px/1 "Poppins",system-ui,sans-serif}
+.art-author-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.art-author-txt{display:grid;gap:2px;min-width:0}
+.art-author-by{font:600 12px/16px "Open Sans",Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#3C34C1}
+.art-author-name{font:600 18px/26px "Poppins",system-ui,sans-serif;color:#1A1555}
+.art-author-loc{font:400 15px/22px "Open Sans",Arial,sans-serif;color:#4D4D4D}
+:root[data-theme="dark"] .art-author{border-top-color:#2B23A4}
+:root[data-theme="dark"] .art-author-name{color:#FCFCFC}
+:root[data-theme="dark"] .art-author-loc{color:#E2DFFB}
+:root[data-theme="dark"] .art-author-by{color:#D3F34F}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2043,13 +2055,13 @@ async function loadDbArticles(){
   const c=window.CURIO_CONFIG||{};
   try{
     if(!c.supabaseUrl||!c.supabaseAnonKey||!window.CurioRender) return;
-    const url=c.supabaseUrl.replace(/\/$/,'')+'/rest/v1/articles?select=slug,title,subtitle,display_title,display_subtitle,cover_url,cover_focal_x,cover_focal_y,tags,reading_minutes,content,published_at&status=eq.published&order=published_at.desc';
+    const url=c.supabaseUrl.replace(/\/$/,'')+'/rest/v1/articles?select=slug,title,subtitle,display_title,display_subtitle,cover_url,cover_focal_x,cover_focal_y,tags,reading_minutes,content,published_at,author_name,author_location,author_photo_url&status=eq.published&order=published_at.desc';
     const r=await fetch(url,{headers:{apikey:c.supabaseAnonKey}});
     if(!r.ok) return;
     const rows=await r.json();
     DB_ARTICLES=rows.filter(x=>x.slug).map(x=>({ id:x.slug, db:true, tag:(x.tags&&x.tags[0])||'Artigo', min:x.reading_minutes||1,
       title:x.display_title||x.title, desc:x.display_subtitle||x.subtitle||'', articleTitle:x.title, articleSub:x.subtitle||'',
-      cover:CurioRender.safeImg(x.cover_url), fx:+x.cover_focal_x||50, fy:+x.cover_focal_y||50, doc:x.content, related:[], published:x.published_at }));
+      cover:CurioRender.safeImg(x.cover_url), fx:+x.cover_focal_x||50, fy:+x.cover_focal_y||50, doc:x.content, related:[], published:x.published_at, author_name:x.author_name||'', author_location:x.author_location||'', author_photo:CurioRender.safeImg(x.author_photo_url) }));
   }catch(e){ /* sem conexão com o banco: a lista fica vazia */ }
   finally{
     window.__curioDbLoaded=true;
@@ -2068,6 +2080,12 @@ function articleCard(a){
     <span class="acard-illo" style="background:${ARTICLE_BANDS[a.id]}">${ARTICLE_SHAPES[a.id]}</span>
     <span class="acard-body"><span class="acard-meta">${a.tag} · ${a.min} min de leitura</span><span class="acard-title">${a.title}</span><span class="acard-desc">${a.desc}</span><span class="go-r acard-go">Ler o artigo ${ARROW}</span></span></a>`;
 }
+function authorBlock(a){
+  if(!a.author_name) return '';
+  const ini=String(a.author_name).trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+  const ph=a.author_photo?`<img src="${escH(a.author_photo)}" alt="" loading="lazy">`:`<span aria-hidden="true">${escH(ini)}</span>`;
+  return `<footer class="art-author"><span class="art-author-photo">${ph}</span><span class="art-author-txt"><span class="art-author-by">Escrito por</span><span class="art-author-name">${escH(a.author_name)}</span>${a.author_location?`<span class="art-author-loc">${escH(a.author_location)}</span>`:''}</span></footer>`;
+}
 function viewArticle(a){
   const others=allArticles().filter(x=>x!==a).slice(0,3);
   if(a.db){
@@ -2075,7 +2093,7 @@ function viewArticle(a){
     return `<article class="view page article bg-50">
     ${pageHead(t,escH(a.articleSub),`<a href="#">Início</a><span>/</span><a href="#artigos">Artigos</a><span>/</span><span>${t}</span>`)}
     <p class="art-meta">${escH(a.tag)} · ${a.min} min de leitura${a.published?` · <time datetime="${escH(a.published)}">Publicado em ${fmtPub(a.published)}</time>`:''}</p>
-    <div class="art-read"><div class="rich">${CurioRender.toHTML(a.doc)}</div></div>
+    <div class="art-read"><div class="rich">${CurioRender.toHTML(a.doc)}</div>${authorBlock(a)}</div>
     ${others.length?`<section class="art-more"><h2>Continue lendo</h2><div class="agrid">${others.map(articleCard).join('')}</div></section>`:''}
   </article>`;
   }
