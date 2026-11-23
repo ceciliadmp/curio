@@ -1222,6 +1222,15 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 :root[data-theme="dark"] .contact-plain .contact-social .ic{--icbg:#211B7E!important}
 :root[data-theme="dark"] .contact-plain .contact-social .ic svg{fill:#D3F34F}
 .contact-plain .contact-social a span:last-child{overflow-wrap:anywhere!important}
+/* home "Siga a Curió": contacts as anil-100 cards, same as the Contato page */
+.fb-social .social-list:not(.contact-social){display:grid;grid-template-columns:minmax(0,1fr);gap:12px;max-width:420px}
+.fb-social .social-list:not(.contact-social) li{display:flex}
+.fb-social .social-list:not(.contact-social) a{flex:1;min-width:0;padding:16px 20px;border-radius:16px;background:#EFEDFD;color:#1A1555!important;transition:background .2s}
+.fb-social .social-list:not(.contact-social) a:hover{background:#E2DFFB}
+.fb-social .social-list:not(.contact-social) a:hover span:last-child{text-decoration:none}
+.fb-social .social-list:not(.contact-social) .ic{--icbg:#EFEDFD!important;width:24px;height:24px;background:none!important}
+.fb-social .social-list:not(.contact-social) a:hover .ic{--icbg:#E2DFFB!important}
+.fb-social .social-list:not(.contact-social) a span:last-child{min-width:0;overflow-wrap:anywhere}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
