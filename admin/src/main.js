@@ -1,4 +1,4 @@
-/* curió · admin de artigos */
+/* Curió · admin de artigos */
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
