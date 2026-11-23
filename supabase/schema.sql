@@ -80,6 +80,13 @@ drop policy if exists "admins apagam imagens" on storage.objects;
 create policy "admins apagam imagens" on storage.objects
   for delete to authenticated using (bucket_id = 'article-images' and public.is_admin());
 
+-- 0. Permissões da API (projetos novos do Supabase não liberam tabelas novas sozinhos)
+grant usage on schema public to anon, authenticated;
+grant select on public.articles to anon;
+grant select, insert, update, delete on public.articles to authenticated;
+grant select on public.admins to authenticated;
+grant execute on function public.is_admin() to anon, authenticated;
+
 -- 4. Torne sua conta admin ---------------------------------------------------
 -- Antes: Authentication → Users → Add user (com e-mail e senha).
 -- Depois troque o e-mail abaixo pelo seu e rode só esta linha:

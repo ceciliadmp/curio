@@ -50,7 +50,9 @@ async function route() {
   if (!store.demo) {
     const s = await store.session().catch(() => null);
     if (!s) return viewLogin();
-    if (!(await store.isAdmin().catch(() => false))) return viewNotAdmin(s);
+    let adminErr = null;
+    const ok = await store.isAdmin().catch(e => { adminErr = e; return false; });
+    if (!ok) return viewNotAdmin(s, adminErr);
   }
   const h = location.hash.replace(/^#\/?/, '');
   const m = h.match(/^editar\/(.+)$/);
@@ -87,8 +89,9 @@ function viewLogin() {
   });
 }
 
-function viewNotAdmin(s) {
+function viewNotAdmin(s, err) {
   shell(`<main class="ad-login"><h1>Sem acesso</h1><p>A conta <b>${esc(s.user.email)}</b> entrou, mas não está na lista de administradoras. Rode no Supabase a última linha de <code>supabase/schema.sql</code> com este e-mail.</p>
+    ${err ? `<p class="ad-err">Detalhe técnico: ${esc(errMsg(err))}${err.code ? ` (${esc(err.code)})` : ''}</p>` : ''}
     <button class="ad-btn ghost" id="out" type="button">Sair</button></main>`);
   document.getElementById('out').onclick = async () => { await store.signOut(); route(); };
 }
