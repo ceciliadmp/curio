@@ -1303,6 +1303,18 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 :root[data-theme="dark"] .art-tab[aria-selected="true"]{color:#D3F34F!important;border-bottom-color:#D3F34F!important}
 /* Contato: three equal cards side by side on desktop, stacked on tablet/mobile */
 @media (min-width:1200px){.contact-plain .contact-social{grid-template-columns:repeat(3,minmax(0,1fr))!important;max-width:none!important}}
+/* Sobre: creator card */
+.creator-card{flex-direction:row!important;align-items:center;gap:24px!important}
+.creator-photo{flex:none;width:96px;height:96px;border-radius:999px;overflow:hidden;background:#FCFCFC;color:#3C34C1;display:grid;place-items:center;font:600 32px/1 "Poppins",system-ui,sans-serif}
+.creator-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.creator-text{display:grid;gap:4px;min-width:0}
+.creator-text .ab-label{margin:0 0 4px}
+.creator-name{margin:0;font:600 24px/32px "Poppins",system-ui,sans-serif;color:#1A1555}
+.creator-bio{margin:0;font:400 16px/24px "Open Sans",Arial,sans-serif;color:#4D4D4D}
+:root[data-theme="dark"] .creator-name{color:#FCFCFC}
+:root[data-theme="dark"] .creator-bio{color:#E2DFFB}
+:root[data-theme="dark"] .creator-photo{background:#2B23A4;color:#FCFCFC}
+@media (max-width:599px){.creator-card{flex-direction:column!important;align-items:flex-start}.creator-photo{width:80px;height:80px;font-size:26px}}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2141,11 +2153,13 @@ function pageHead(title, desc, crumbs){
 }
 function viewAbout(){
   return `<section class="view page bg-50">
-    ${pageHead('Sobre','A Curió é uma plataforma brasileira de aprendizado de design, onde designers aprendem com conteúdo didático e exemplos reais, ensinam o que sabem e trocam experiências.<br><br>No Nordeste, gente curiosa, que pergunta tudo, é “Curió”: aqui, perguntar é o começo de tudo.')}
-    <article class="ab-card ab-soft ab-hero">
-      <div class="ab-hero-text">
-        <p class="ab-label">Propósito</p>
-        <p class="ab-big">A Curió é uma plataforma brasileira de aprendizado de design, onde designers aprendem com conteúdo didático e exemplos reais, ensinam o que sabem e trocam experiências, do primeiro emprego à liderança.</p>
+    ${pageHead('Sobre','A Curió é uma plataforma brasileira de aprendizado de design, onde designers aprendem com conteúdo didático e exemplos reais, ensinam o que sabem e trocam experiências, do primeiro emprego à liderança.<br><br>No Nordeste, gente curiosa, que pergunta tudo, é “Curió”: aqui, perguntar é o começo de tudo.')}
+    <article class="ab-card ab-soft creator-card">
+      <span class="creator-photo" aria-hidden="true">CM</span>
+      <div class="creator-text">
+        <p class="ab-label">Quem criou a Curió</p>
+        <p class="creator-name">Cecília Moraes</p>
+        <p class="creator-bio">Designer, criadora e editora da Curió.</p>
       </div>
     </article>
   </section>`;
