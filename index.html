@@ -2428,13 +2428,13 @@ async function bindFeedback(){
     btn.disabled=true; say('Enviando…');
     const ok=typeof window.claude==='undefined'?false:await withTimeout(ready,8000).catch(()=>false);
     if(typeof window.claude==='undefined'){
-      /* Site público: o feedback vai por e-mail (FormSubmit) para a caixa da Curió. */
+      /* Site público: o feedback vai por e-mail (Web3Forms) para contato.curiodesign@gmail.com. */
       const honey=form.querySelector('.fb-honey');
       if(honey&&honey.value){ ta.value=''; say('Valeu! Seu feedback chegou direitinho.','ok'); btn.disabled=false; return; }
       try{
         const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),20000);
-        const r=await fetch('https://formsubmit.co/ajax/contato.curiodesign@gmail.com',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',Accept:'application/json'},
-          body:JSON.stringify({Feedback:text,'Página':location.href,_subject:'Novo feedback no site da Curió',_template:'table',_captcha:'false'})});
+        const r=await fetch('https://api.web3forms.com/submit',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',Accept:'application/json'},
+          body:JSON.stringify({access_key:'caad7dfc-2adf-414a-8bf5-9ec5e1c60dac',subject:'Novo feedback no site da Curió',from_name:'Site da Curió',message:text,'Página':location.href})});
         const j=await r.json().catch(()=>({})); clearTimeout(tm);
         if(!r.ok||String(j.success)!=='true') throw new Error(j.message||('HTTP '+r.status));
         ta.value=''; say('Valeu! Seu feedback chegou direitinho.','ok');
