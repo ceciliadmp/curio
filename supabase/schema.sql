@@ -46,6 +46,7 @@ create table if not exists public.articles (
 alter table public.articles add column if not exists author_name text not null default '';
 alter table public.articles add column if not exists author_location text not null default '';
 alter table public.articles add column if not exists author_photo_url text;
+alter table public.articles add column if not exists author_url text not null default ''; -- site ou LinkedIn do autor(a)
 alter table public.articles add column if not exists draft jsonb;
 
 create or replace function public.touch_updated_at()
@@ -93,7 +94,7 @@ grant usage on schema public to anon, authenticated;
 revoke select on public.articles from anon;
 grant select (id, slug, title, subtitle, content, status, display_title, display_subtitle, cover_url,
   cover_focal_x, cover_focal_y, tags, word_count, reading_minutes, created_at, updated_at, published_at,
-  author_name, author_location, author_photo_url)
+  author_name, author_location, author_photo_url, author_url)
   on public.articles to anon; -- o rascunho de edição (draft) não fica visível para o público
 grant select, insert, update, delete on public.articles to authenticated;
 grant select on public.admins to authenticated;

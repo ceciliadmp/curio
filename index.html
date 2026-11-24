@@ -1253,6 +1253,9 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .ab-soft .ab-big{max-width:none!important}
 .ab-soft .ab-hero-text{flex:1}
 .ab-soft .ab-big{font-weight:500!important}
+.art-author-link{color:#3C34C1!important;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;overflow-wrap:anywhere}
+.art-author-link:hover{color:#2B23A4!important;text-decoration-thickness:2px}
+:root[data-theme="dark"] .art-author-link{color:#D3F34F!important}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -1267,8 +1270,10 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 <script>
 /* Começa a buscar a lista de artigos antes do resto da página carregar (sem o corpo dos artigos, que é pesado). */
 (function(){var c=window.CURIO_CONFIG||{};if(!c.supabaseUrl||!c.supabaseAnonKey)return;
-window.__curioList=fetch(c.supabaseUrl.replace(/\/$/,'')+'/rest/v1/articles?select=slug,title,subtitle,display_title,display_subtitle,cover_url,cover_focal_x,cover_focal_y,tags,reading_minutes,published_at,author_name,author_location,author_photo_url&status=eq.published&order=published_at.desc',{headers:{apikey:c.supabaseAnonKey}})
-.then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});window.__curioList.catch(function(){});})();
+window.__curioList=fetch(c.supabaseUrl.replace(/\/$/,'')+'/rest/v1/articles?select=slug,title,subtitle,display_title,display_subtitle,cover_url,cover_focal_x,cover_focal_y,tags,reading_minutes,published_at,author_name,author_url,author_photo_url&status=eq.published&order=published_at.desc',{headers:{apikey:c.supabaseAnonKey}})
+.then(function(r){if(r.ok)return r.json();
+/* banco ainda sem a coluna author_url: busca de novo sem ela */
+return fetch(c.supabaseUrl.replace(/\/$/,'')+'/rest/v1/articles?select=slug,title,subtitle,display_title,display_subtitle,cover_url,cover_focal_x,cover_focal_y,tags,reading_minutes,published_at,author_name,author_photo_url&status=eq.published&order=published_at.desc',{headers:{apikey:c.supabaseAnonKey}}).then(function(r2){if(!r2.ok)throw new Error('HTTP '+r2.status);return r2.json();});});window.__curioList.catch(function(){});})();
 </script>
 </head>
 <body>
@@ -2114,7 +2119,7 @@ const DOCS={}; /* corpo dos artigos já baixados, por slug */
 const mapRow=x=>({ id:x.slug, db:true, tag:(x.tags&&x.tags[0])||'Artigo', min:x.reading_minutes||1,
   title:x.display_title||x.title, desc:x.display_subtitle||x.subtitle||'', articleTitle:x.title, articleSub:x.subtitle||'',
   cover:CurioRender.safeImg(x.cover_url), fx:+x.cover_focal_x||50, fy:+x.cover_focal_y||50, related:[], published:x.published_at,
-  author_name:x.author_name||'', author_location:x.author_location||'', author_photo:CurioRender.safeImg(x.author_photo_url) });
+  author_name:x.author_name||'', author_url:CurioRender.safeUrl(x.author_url), author_photo:CurioRender.safeImg(x.author_photo_url) });
 const setRows=rows=>{ DB_ARTICLES=(rows||[]).filter(x=>x&&x.slug).map(mapRow); };
 /* Última lista vista neste navegador: aparece na hora, enquanto a nova chega. */
 let cachedList=null;
@@ -2165,7 +2170,7 @@ function authorBlock(a){
   if(!a.author_name) return '';
   const ini=String(a.author_name).trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('');
   const ph=a.author_photo?`<img src="${escH(a.author_photo)}" alt="" loading="lazy">`:`<span aria-hidden="true">${escH(ini)}</span>`;
-  return `<footer class="art-author"><span class="art-author-photo">${ph}</span><span class="art-author-txt"><span class="art-author-by">Escrito por</span><span class="art-author-name">${escH(a.author_name)}</span>${a.author_location?`<span class="art-author-loc">${escH(a.author_location)}</span>`:''}</span></footer>`;
+  return `<footer class="art-author"><span class="art-author-photo">${ph}</span><span class="art-author-txt"><span class="art-author-by">Escrito por</span><span class="art-author-name">${escH(a.author_name)}</span>${a.author_url?`<a class="art-author-loc art-author-link" href="${escH(a.author_url)}" target="_blank" rel="noopener noreferrer">${escH(String(a.author_url).replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,''))}</a>`:''}</span></footer>`;
 }
 function viewArticle(a){
   const others=allArticles().filter(x=>x!==a).slice(0,3);

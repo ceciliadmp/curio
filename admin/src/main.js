@@ -44,10 +44,12 @@ const siteUrl = slug => `${location.origin}/#artigo-${encodeURIComponent(slug)}`
 /* The last author used becomes the default for the next new article. */
 const AUTHOR_KEY = 'curio-last-author';
 function lastAuthor() {
-  try { const a = JSON.parse(localStorage.getItem(AUTHOR_KEY)) || {}; return { author_name: a.author_name || '', author_location: a.author_location || '', author_photo_url: a.author_photo_url || null }; }
+  try { const a = JSON.parse(localStorage.getItem(AUTHOR_KEY)) || {}; return { author_name: a.author_name || '', author_url: a.author_url || '', author_photo_url: a.author_photo_url || null }; }
   catch (e) { return {}; }
 }
 function rememberAuthor(a) { try { localStorage.setItem(AUTHOR_KEY, JSON.stringify(a)); } catch (e) { /* ignore */ } }
+/* Accepts "linkedin.com/in/x" or a full URL; keeps only http(s) links. */
+const normUrl = v => { v = String(v || '').trim(); if (!v) return ''; if (!/^https?:\/\//i.test(v)) v = 'https://' + v; return R.safeUrl(v) || ''; };
 const initials = n => String(n || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
 
 function destroyEditor() { if (editor) { editor.destroy(); editor = null; } }
@@ -155,7 +157,7 @@ async function viewEditor(id) {
           <button type="button" class="author-photo" title="Escolher foto" aria-label="Escolher foto do autor ou autora"></button>
           <div class="author-fields">
             <input class="author-name" type="text" placeholder="Nome do autor ou autora" aria-label="Nome do autor ou autora" maxlength="80" value="${esc(src.author_name || '')}">
-            <input class="author-loc" type="text" placeholder="Cidade/UF, ex.: Recife/PE" aria-label="Cidade e estado" maxlength="60" value="${esc(src.author_location || '')}">
+            <input class="author-loc" type="text" inputmode="url" autocomplete="off" placeholder="Site ou LinkedIn, ex.: linkedin.com/in/seu-nome" aria-label="Site ou LinkedIn do autor ou autora" maxlength="200" value="${esc(src.author_url || '')}">
           </div>
           <button type="button" class="author-photo-rm ad-btn ghost sm" hidden>Remover foto</button>
         </div>
@@ -186,7 +188,7 @@ async function viewEditor(id) {
     photoRm.hidden = !authorPhoto;
   }
   paintAuthor();
-  const authorChanged = () => { paintAuthor(); rememberAuthor({ author_name: nameIn.value.trim(), author_location: locIn.value.trim(), author_photo_url: authorPhoto || null }); queueSave(); };
+  const authorChanged = () => { paintAuthor(); rememberAuthor({ author_name: nameIn.value.trim(), author_url: normUrl(locIn.value), author_photo_url: authorPhoto || null }); queueSave(); };
   nameIn.addEventListener('input', authorChanged);
   locIn.addEventListener('input', authorChanged);
   photoBtn.addEventListener('click', () => authorFile.click());
@@ -205,7 +207,7 @@ async function viewEditor(id) {
   function snapshot() {
     const content = editor.getJSON(), title = titleEl.value.trim(), subtitle = subEl.value.trim();
     const word_count = R.wordCount(content, title, subtitle);
-    const author = { author_name: nameIn.value.trim(), author_location: locIn.value.trim(), author_photo_url: authorPhoto || null };
+    const author = { author_name: nameIn.value.trim(), author_url: normUrl(locIn.value), author_photo_url: authorPhoto || null };
     return { title, subtitle, content, word_count, reading_minutes: R.readingMinutes(word_count), ...author };
   }
   async function flush() {

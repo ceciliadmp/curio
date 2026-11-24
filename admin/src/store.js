@@ -94,7 +94,7 @@ export function localStore() {
     async list() { return read().sort((a, b) => b.updated_at.localeCompare(a.updated_at)).map(pick); },
     async get(id) { const r = read().find(x => x.id === id); if (!r) throw new Error('Artigo não encontrado'); return r; },
     async create(defaults = {}) {
-      const r = { author_name: '', author_location: '', author_photo_url: null, id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), title: '', subtitle: '', content: EMPTY_DOC,
+      const r = { author_name: '', author_url: '', author_photo_url: null, id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), title: '', subtitle: '', content: EMPTY_DOC,
         status: 'draft', slug: null, display_title: null, display_subtitle: null, cover_url: null, cover_focal_x: 50, cover_focal_y: 50,
         tags: [], word_count: 0, reading_minutes: 1, created_at: now(), updated_at: now(), published_at: null, ...defaults };
       write([r, ...read()]); return r;
