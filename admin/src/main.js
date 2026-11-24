@@ -157,7 +157,7 @@ async function viewEditor(id) {
           <button type="button" class="author-photo" title="Escolher foto" aria-label="Escolher foto do autor ou autora"></button>
           <div class="author-fields">
             <input class="author-name" type="text" placeholder="Nome do autor ou autora" aria-label="Nome do autor ou autora" maxlength="80" value="${esc(src.author_name || '')}">
-            <input class="author-loc" type="text" inputmode="url" autocomplete="off" placeholder="Site ou LinkedIn, ex.: linkedin.com/in/seu-nome" aria-label="Site ou LinkedIn do autor ou autora" maxlength="200" value="${esc(src.author_url || '')}">
+            <input class="author-loc" type="text" inputmode="url" autocomplete="off" placeholder="Site ou LinkedIn, ex.: linkedin.com/in/seu-nome" aria-label="Site ou LinkedIn do autor ou autora" maxlength="200" value="${esc((() => { try { return decodeURI(src.author_url || ''); } catch (e) { return src.author_url || ''; } })())}">
           </div>
           <button type="button" class="author-photo-rm ad-btn ghost sm" hidden>Remover foto</button>
         </div>

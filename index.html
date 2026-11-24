@@ -2166,11 +2166,12 @@ function articleCard(a){
     <span class="acard-illo" style="background:${ARTICLE_BANDS[a.id]}">${ARTICLE_SHAPES[a.id]}</span>
     <span class="acard-body"><span class="acard-meta">${a.tag} · ${a.min} min de leitura</span><span class="acard-title">${a.title}</span><span class="acard-desc">${a.desc}</span><span class="go-r acard-go">Ler o artigo ${ARROW}</span></span></a>`;
 }
+const prettyUrl=u=>{ let t=String(u||'').replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,''); try{ t=decodeURI(t); }catch(e){} return t; };
 function authorBlock(a){
   if(!a.author_name) return '';
   const ini=String(a.author_name).trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('');
   const ph=a.author_photo?`<img src="${escH(a.author_photo)}" alt="" loading="lazy">`:`<span aria-hidden="true">${escH(ini)}</span>`;
-  return `<footer class="art-author"><span class="art-author-photo">${ph}</span><span class="art-author-txt"><span class="art-author-by">Escrito por</span><span class="art-author-name">${escH(a.author_name)}</span>${a.author_url?`<a class="art-author-loc art-author-link" href="${escH(a.author_url)}" target="_blank" rel="noopener noreferrer">${escH(String(a.author_url).replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,''))}</a>`:''}</span></footer>`;
+  return `<footer class="art-author"><span class="art-author-photo">${ph}</span><span class="art-author-txt"><span class="art-author-by">Escrito por</span><span class="art-author-name">${escH(a.author_name)}</span>${a.author_url?`<a class="art-author-loc art-author-link" href="${escH(a.author_url)}" target="_blank" rel="noopener noreferrer">${escH(prettyUrl(a.author_url))}</a>`:''}</span></footer>`;
 }
 function viewArticle(a){
   const others=allArticles().filter(x=>x!==a).slice(0,3);
