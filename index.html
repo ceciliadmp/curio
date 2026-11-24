@@ -1292,6 +1292,15 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .art-tab[aria-selected="true"]{background:#3C34C1;border-color:#3C34C1;color:#FCFCFC}
 :root[data-theme="dark"] .art-tab{background:#211B7E;border-color:#2B23A4;color:#FCFCFC}
 :root[data-theme="dark"] .art-tab[aria-selected="true"]{background:#D3F34F;border-color:#D3F34F;color:#1A1555}
+/* subject tabs: minimal, underline only */
+.art-tabs{gap:0 28px!important;border-bottom:1.5px solid #E2DFFB;margin:-8px 0 8px!important;flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}
+.art-tabs::-webkit-scrollbar{display:none}
+.art-tab{flex:none;min-height:0!important;padding:10px 0 12px!important;border:0!important;border-radius:0!important;background:none!important;color:#4D4D4D!important;font-weight:600;margin-bottom:-1.5px;border-bottom:2px solid transparent!important;white-space:nowrap}
+.art-tab:hover{color:#1A1555!important}
+.art-tab[aria-selected="true"]{color:#3C34C1!important;border-bottom-color:#3C34C1!important}
+:root[data-theme="dark"] .art-tabs{border-bottom-color:#2B23A4}
+:root[data-theme="dark"] .art-tab{color:#E2DFFB!important}
+:root[data-theme="dark"] .art-tab[aria-selected="true"]{color:#D3F34F!important;border-bottom-color:#D3F34F!important}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
