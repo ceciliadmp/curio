@@ -1266,12 +1266,12 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .art-author-photo{width:68px!important;height:68px!important;font-size:22px}
 .art-author{background:#EFEDFD!important;border:1.5px solid #E2DFFB!important}
 :root[data-theme="dark"] .art-author{background:#211B7E!important;border-color:#2B23A4!important}
-/* article cards: image on the left, text on the right; two per row when there is room */
-.art-band .agrid,.page .agrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr))!important}
-.acard{flex-direction:row!important}
-.acard-illo{flex:0 0 40%;height:auto!important;min-height:200px}
-.acard-body{min-width:0}
-@media (max-width:559px){.acard{flex-direction:column!important}.acard-illo{flex:none;height:160px!important;min-height:0}}
+/* article cards: image on top, side by side; title and description clamped to 3 lines; a bit shorter */
+.art-band .agrid,.page .agrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}
+.acard-illo{height:136px!important}
+.acard-body{padding:20px!important;gap:6px!important;min-width:0}
+.acard-title,.acard-desc{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+.acard-go{padding-top:6px!important}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
