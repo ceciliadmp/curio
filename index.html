@@ -1322,6 +1322,9 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .creator-name{font-size:20px!important;line-height:28px!important}
 .creator-photo{width:80px!important;height:80px!important;font-size:26px!important}
 @media (max-width:599px){.creator-photo{width:64px!important;height:64px!important;font-size:22px!important}}
+.creator-link{justify-self:start;margin-top:2px;font:400 15px/22px "Open Sans",Arial,sans-serif;color:#3C34C1;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.creator-link:hover{color:#2B23A4;text-decoration-thickness:2px}
+:root[data-theme="dark"] .creator-link{color:#D3F34F}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2171,6 +2174,7 @@ function viewAbout(){
         <p class="ab-label">Quem criou a Curió</p>
         <p class="creator-name">Cecília Moraes</p>
         <p class="creator-bio">Product Designer, criadora e editora da Curió</p>
+        <a class="creator-link" href="https://www.linkedin.com/in/cec%C3%ADlia-moraes/" target="_blank" rel="noopener noreferrer">linkedin.com/in/cecília-moraes</a>
       </div>
     </article>
   </section>`;
