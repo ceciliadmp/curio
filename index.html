@@ -1247,6 +1247,7 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 @media (prefers-reduced-motion:reduce){.acard.skel .acard-illo,.sk{animation:none}}
 .art-loading{margin:0;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
 .fb-honey{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0}
+.fb-status a{color:#D3F34F;font-weight:600;text-decoration:underline;text-underline-offset:3px}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2437,7 +2438,10 @@ async function bindFeedback(){
         const j=await r.json().catch(()=>({})); clearTimeout(tm);
         if(!r.ok||String(j.success)!=='true') throw new Error(j.message||('HTTP '+r.status));
         ta.value=''; say('Valeu! Seu feedback chegou direitinho.','ok');
-      }catch(err){ console.warn('feedback:',err&&err.message); say(/activ/i.test(err&&err.message||'')?'O envio por e-mail ainda está sendo ativado. Tente de novo daqui a pouco.':'Não deu pra enviar agora. Tente de novo em instantes ou escreva pra contato.curiodesign@gmail.com.','err'); }
+      }catch(err){ console.warn('feedback:',err&&err.message); const mail='mailto:contato.curiodesign@gmail.com?subject='+encodeURIComponent('Feedback para a Curió')+'&body='+encodeURIComponent(text);
+        st.dataset.kind='err';
+        st.innerHTML=(/activ/i.test(err&&err.message||'')?'O envio por e-mail ainda está sendo ativado.':(err&&err.name==='AbortError'?'O envio demorou demais.':'Não deu pra enviar agora.'))+' <a href="'+mail+'">Enviar pelo seu e-mail</a>';
+      }
       finally{ btn.disabled=false; }
       return;
     }
