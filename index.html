@@ -2409,6 +2409,7 @@ function route(){
   window.scrollTo({top:0,behavior:'instant'});
 }
 /* Feedback form: each person writes only under feedback/<their id>; the owner and Editors read them all. */
+const withTimeout=(pr,ms)=>Promise.race([pr,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
 async function bindFeedback(){
   const form=document.getElementById('fb-form'); if(!form) return;
   const ta=form.querySelector('textarea'), btn=form.querySelector('button'), st=document.getElementById('fb-status');
@@ -2424,25 +2425,26 @@ async function bindFeedback(){
     const text=ta.value.trim();
     if(!text){ say('Escreva seu feedback antes de enviar.','err'); ta.focus(); return; }
     btn.disabled=true; say('Enviando…');
-    const ok=await ready;
+    const ok=typeof window.claude==='undefined'?false:await withTimeout(ready,8000).catch(()=>false);
     if(typeof window.claude==='undefined'){
       /* Site público: o feedback vai por e-mail (FormSubmit) para a caixa da Curió. */
       const honey=form.querySelector('.fb-honey');
       if(honey&&honey.value){ ta.value=''; say('Valeu! Seu feedback chegou direitinho.','ok'); btn.disabled=false; return; }
       try{
-        const r=await fetch('https://formsubmit.co/ajax/contato.curiodesign@gmail.com',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},
+        const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),20000);
+        const r=await fetch('https://formsubmit.co/ajax/contato.curiodesign@gmail.com',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',Accept:'application/json'},
           body:JSON.stringify({Feedback:text,'Página':location.href,_subject:'Novo feedback no site da Curió',_template:'table',_captcha:'false'})});
-        const j=await r.json().catch(()=>({}));
+        const j=await r.json().catch(()=>({})); clearTimeout(tm);
         if(!r.ok||String(j.success)!=='true') throw new Error(j.message||('HTTP '+r.status));
         ta.value=''; say('Valeu! Seu feedback chegou direitinho.','ok');
-      }catch(err){ say('Não deu pra enviar agora. Tente de novo em instantes ou escreva pra contato.curiodesign@gmail.com.','err'); }
+      }catch(err){ console.warn('feedback:',err&&err.message); say(/activ/i.test(err&&err.message||'')?'O envio por e-mail ainda está sendo ativado. Tente de novo daqui a pouco.':'Não deu pra enviar agora. Tente de novo em instantes ou escreva pra contato.curiodesign@gmail.com.','err'); }
       finally{ btn.disabled=false; }
       return;
     }
     if(!ok){ btn.disabled=false; say('Não deu pra enviar daqui. Entre na sua conta do claude.ai e tente de novo.','err'); return; }
     const send=()=>db.collection('feedback/'+uid+'/mensagens').add({texto:text,enviadoEm:new Date().toISOString(),pagina:'home'});
     try{
-      try{ await send(); }catch(err){ if(err&&err.code==='unavailable'){ await new Promise(r=>setTimeout(r,600+Math.random()*600)); await send(); } else throw err; }
+      try{ await withTimeout(send(),15000); }catch(err){ if(err&&err.code==='unavailable'){ await new Promise(r=>setTimeout(r,600+Math.random()*600)); await send(); } else throw err; }
       ta.value=''; say('Valeu! Seu feedback chegou direitinho.','ok');
     }catch(err){
       const c=err&&err.code;
