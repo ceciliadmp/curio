@@ -1273,6 +1273,13 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .acard-title,.acard-desc{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
 .acard-go{padding-top:6px!important}
 .acard-desc{font-size:14px!important;line-height:22px!important}
+/* byline under the article meta */
+.art-byline{display:flex;align-items:center;gap:8px;margin:-16px 0 0;font:400 14px/20px "Open Sans",Arial,sans-serif;color:#4D4D4D}
+.art-byline b{font-weight:600;color:#1A1555}
+.art-byline-photo{flex:none;width:28px;height:28px;border-radius:999px;overflow:hidden;background:#EFEDFD;color:#3C34C1;display:grid;place-items:center;font:600 11px/1 "Poppins",system-ui,sans-serif}
+.art-byline-photo img{width:100%;height:100%;object-fit:cover;display:block}
+:root[data-theme="dark"] .art-byline{color:#E2DFFB}
+:root[data-theme="dark"] .art-byline b{color:#FCFCFC}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2184,6 +2191,12 @@ function articleCard(a){
     <span class="acard-body"><span class="acard-meta">${a.tag} · ${a.min} min de leitura</span><span class="acard-title">${a.title}</span><span class="acard-desc">${a.desc}</span><span class="go-r acard-go">Ler o artigo ${ARROW}</span></span></a>`;
 }
 const prettyUrl=u=>{ let t=String(u||'').replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,''); try{ t=decodeURI(t); }catch(e){} return t; };
+function authorByline(a){
+  if(!a.author_name) return '';
+  const ini=String(a.author_name).trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+  const ph=a.author_photo?`<img src="${escH(a.author_photo)}" alt="" loading="lazy">`:`<span aria-hidden="true">${escH(ini)}</span>`;
+  return `<p class="art-byline"><span class="art-byline-photo">${ph}</span><span>Por <b>${escH(a.author_name)}</b></span></p>`;
+}
 function authorBlock(a){
   if(!a.author_name) return '';
   const ini=String(a.author_name).trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('');
@@ -2198,6 +2211,7 @@ function viewArticle(a){
     return `<article class="view page article bg-50">
     ${pageHead(t,escH(a.articleSub),`<a href="#">Início</a><span>/</span><a href="#artigos">Artigos</a><span>/</span><span>${t}</span>`)}
     <p class="art-meta">${escH(a.tag)} · ${a.min} min de leitura${a.published?` · <time datetime="${escH(a.published)}">Publicado em ${fmtPub(a.published)}</time>`:''}</p>
+    ${authorByline(a)}
     <div class="art-read">${DOCS[a.id]?`<div class="rich">${CurioRender.toHTML(DOCS[a.id])}</div>${authorBlock(a)}`:'<p class="art-loading">Carregando artigo…</p>'}</div>
     ${others.length?`<section class="art-more"><h2>Continue lendo</h2><div class="agrid">${others.map(articleCard).join('')}</div></section>`:''}
   </article>`;
@@ -2206,6 +2220,7 @@ function viewArticle(a){
   return `<article class="view page article bg-50">
     ${pageHead(a.title,a.desc,`<a href="#">Início</a><span>/</span><a href="#artigos">Artigos</a><span>/</span><span>${a.title}</span>`)}
     <p class="art-meta">${a.tag} · ${a.min} min de leitura</p>
+    ${authorByline(a)}
     <div class="art-read">${a.body}
       <aside class="art-take"><p class="ab-label">Pra levar pro próximo review</p><p>${a.take}</p></aside>
       ${rel.length?`<section class="art-rel"><h2>Veja na trilha Design Comportamental</h2><div class="xchips">${rel.map(x=>`<a class="xchip" data-cat="${x.cat}" href="#v-${x.id}"><i></i>${x.name}</a>`).join('')}</div></section>`:''}
