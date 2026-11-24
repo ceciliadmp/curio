@@ -226,3 +226,4 @@ dialog.pub::backdrop{background:rgba(26,21,85,.45)}
 /* secondary button: lavanda fill, anil text */
 .ad-btn.secondary{background:var(--anil-100);color:var(--anil)}
 .ad-btn.secondary:hover{background:var(--anil-200)}
+.ed-fig .ed-fig-cap{font-size:14px!important;line-height:22px!important}

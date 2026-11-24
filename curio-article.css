@@ -16,7 +16,7 @@
 .rich hr,.rich hr.divider{border:0;height:2px;margin:48px 0;background:#E2DFFB;border-radius:2px}
 .rich .fig{margin:32px 0}
 .rich .fig img{display:block;width:100%;height:auto;border-radius:16px}
-.rich .fig figcaption{margin-top:8px;font:400 16px/24px "Open Sans",Arial,sans-serif;color:var(--rich-soft);text-align:center}
+.rich .fig figcaption{margin-top:8px;font:400 14px/22px "Open Sans",Arial,sans-serif;color:var(--rich-soft);text-align:center}
 @media (min-width:900px){
   .rich .fig--outset{margin-left:-80px;margin-right:-80px}
 }
