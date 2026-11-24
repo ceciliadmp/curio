@@ -195,7 +195,7 @@ async function viewEditor(id) {
     const f = authorFile.files[0]; authorFile.value = ''; if (!f) return;
     if (!/^image\//.test(f.type)) return;
     setState('Enviando foto…', 'busy');
-    try { authorPhoto = await store.uploadImage(f); authorChanged(); }
+    try { authorPhoto = await store.uploadImage(f, 400); authorChanged(); }
     catch (e) { toast(`Não deu pra enviar a foto: ${esc(errMsg(e))}`, 'err'); setState('Erro no envio', 'err'); }
   });
 

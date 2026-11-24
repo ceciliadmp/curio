@@ -10,6 +10,25 @@ const withDraft = (row, extra) => {
   return out;
 };
 
+/* Shrinks big photos before upload (max side in px, JPEG/WebP ~82%), so pages load fast.
+   GIFs (may be animated) and SVGs go up untouched. */
+export async function shrinkImage(file, maxSide = 1600) {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type) || typeof createImageBitmap !== 'function') return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+    if (scale === 1 && file.size < 400 * 1024) { bmp.close && bmp.close(); return file; }
+    const w = Math.round(bmp.width * scale), h = Math.round(bmp.height * scale);
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(bmp, 0, 0, w, h); bmp.close && bmp.close();
+    const type = file.type === 'image/png' ? 'image/webp' : 'image/jpeg';
+    const blob = await new Promise(res => cv.toBlob(res, type, 0.82));
+    if (!blob || blob.size >= file.size) return file;
+    const ext = type === 'image/webp' ? 'webp' : 'jpg';
+    return new File([blob], (file.name || 'imagem').replace(/\.[^.]+$/, '') + '.' + ext, { type });
+  } catch (e) { return file; }
+}
+
 function unique(base, taken) {
   let s = base, i = 2;
   while (taken.has(s)) s = `${base}-${i++}`;
@@ -47,7 +66,8 @@ export function supabaseStore(url, key) {
       const row = must(await sb.from('articles').select('draft').eq('id', id).single());
       return must(await sb.from('articles').update(withDraft(row, { status: 'draft' })).eq('id', id).select('*').single());
     },
-    async uploadImage(file) {
+    async uploadImage(original, maxSide) {
+      const file = await shrinkImage(original, maxSide);
       const s = await this.session();
       const ext = (file.name && file.name.split('.').pop() || file.type.split('/')[1] || 'png').toLowerCase().replace(/[^a-z0-9]/g, '');
       const path = `${s.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
@@ -90,7 +110,8 @@ export function localStore() {
       Object.assign(r, withDraft(r, { ...meta, slug, status: 'published', updated_at: now() })); write(rows); return r;
     },
     async unpublish(id) { const rows = read(), r = rows.find(x => x.id === id); Object.assign(r, withDraft(r, { status: 'draft', updated_at: now() })); write(rows); return r; },
-    uploadImage(file) {
+    async uploadImage(original, maxSide) {
+      const file = await shrinkImage(original, maxSide);
       return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(fr.error); fr.readAsDataURL(file); });
     }
   };
