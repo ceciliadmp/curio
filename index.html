@@ -1336,6 +1336,9 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .mast.menu-open .burger .bb .b2{opacity:0}
 .mast.menu-open .burger .bb .b3{top:6px;transform:rotate(-45deg)}
 @media (prefers-reduced-motion:reduce){.burger .bb i{transition:none}}
+.ab-purpose{background:none!important;border:0!important;box-shadow:none!important}
+.ab-purpose .ab-big{font-size:20px!important;line-height:30px!important;font-weight:500!important;max-width:none!important;color:#1A1555}
+:root[data-theme="dark"] .ab-purpose .ab-big{color:#FCFCFC}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2175,7 +2178,7 @@ function pageHead(title, desc, crumbs){
 function viewAbout(){
   return `<section class="view page bg-50">
     ${pageHead('Sobre','A Curió é uma plataforma brasileira de aprendizado de design, onde designers aprendem com conteúdo didático e exemplos reais, ensinam o que sabem e trocam experiências.<br><br>No Nordeste, gente curiosa, que pergunta tudo, é “Curió”: aqui, perguntar é o começo de tudo.')}
-    <section class="ab-purpose ab-soft">
+    <section class="ab-purpose">
       <p class="ab-label">Propósito</p>
       <p class="ab-big">A Curió é uma plataforma brasileira de aprendizado de design, onde designers aprendem com conteúdo didático e exemplos reais, ensinam o que sabem e trocam experiências, do primeiro emprego à liderança.</p>
     </section>
