@@ -1280,6 +1280,11 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .art-byline-photo img{width:100%;height:100%;object-fit:cover;display:block}
 :root[data-theme="dark"] .art-byline{color:#E2DFFB}
 :root[data-theme="dark"] .art-byline b{color:#FCFCFC}
+/* back button on the article page */
+.art-back{justify-self:start;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 18px 8px 14px;border-radius:999px;background:#EFEDFD;color:#3C34C1!important;text-decoration:none;font:600 15px/22px "Open Sans",Arial,sans-serif;margin-bottom:-8px}
+.art-back:hover{background:#E2DFFB}
+.art-back svg{width:18px;height:18px;flex:none}
+:root[data-theme="dark"] .art-back{background:#2B23A4;color:#FCFCFC!important}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2209,7 +2214,8 @@ function viewArticle(a){
     if(!DOCS[a.id]) setTimeout(()=>loadArticleBody(a.id),0);
     const t=escH(a.articleTitle);
     return `<article class="view page article bg-50">
-    ${pageHead(t,escH(a.articleSub),`<a href="#">Início</a><span>/</span><a href="#artigos">Artigos</a><span>/</span><span>${t}</span>`)}
+    <a class="art-back" href="#artigos" data-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Voltar</a>
+    ${pageHead(t,escH(a.articleSub))}
     <p class="art-meta">${escH(a.tag)} · ${a.min} min de leitura${a.published?` · <time datetime="${escH(a.published)}">Publicado em ${fmtPub(a.published)}</time>`:''}</p>
     ${authorByline(a)}
     <div class="art-read">${DOCS[a.id]?`<div class="rich">${CurioRender.toHTML(DOCS[a.id])}</div>${authorBlock(a)}`:'<p class="art-loading">Carregando artigo…</p>'}</div>
@@ -2218,7 +2224,8 @@ function viewArticle(a){
   }
   const rel=a.related.map(id=>itemById(id)).filter(Boolean);
   return `<article class="view page article bg-50">
-    ${pageHead(a.title,a.desc,`<a href="#">Início</a><span>/</span><a href="#artigos">Artigos</a><span>/</span><span>${a.title}</span>`)}
+    <a class="art-back" href="#artigos" data-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Voltar</a>
+    ${pageHead(a.title,a.desc)}
     <p class="art-meta">${a.tag} · ${a.min} min de leitura</p>
     ${authorByline(a)}
     <div class="art-read">${a.body}
@@ -2428,7 +2435,11 @@ function mountDemo(b,S){
 /* =========================================================
    ROUTER (hash)
    ========================================================= */
+/* "Voltar": goes back in the site's own history when there is one, else to the article list */
+let navCount=0;
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-back]'); if(a&&navCount>1){e.preventDefault(); history.back();}});
 function route(){
+  navCount++;
   clearTimers();
   const h=location.hash.slice(1);
   let html, after=null, title='Curió · Design que se aprende na troca', S=null, nav='inicio';
