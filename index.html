@@ -2355,7 +2355,7 @@ function artListHTML(){
   return l.length?l.map(articleCard).join(''):`<p class="art-empty art-noresult">Nenhum artigo encontrado${ART_Q.trim()?` para “${escH(ART_Q.trim())}”`:''}. Tente outra palavra.</p>`;
 }
 function articleSearch(){
-  return `<div class="art-search" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="art-q" placeholder="Buscar artigos" aria-label="Buscar artigos" autocomplete="off" value="${escH(ART_Q)}"></div>`;
+  return `<div class="art-search" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="art-q" placeholder="Busque por palavra-chave, tema ou autor(a)" aria-label="Buscar artigos" autocomplete="off" value="${escH(ART_Q)}"></div>`;
 }
 document.addEventListener('input',e=>{
   if(!e.target||e.target.id!=='art-q') return;
