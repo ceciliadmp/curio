@@ -2274,7 +2274,7 @@ function loadArticleBody(slug){
 }
 function skeletonBand(){
   const card='<div class="acard skel" aria-hidden="true"><span class="acard-illo"></span><span class="acard-body"><span class="sk sk-s"></span><span class="sk sk-l"></span><span class="sk sk-m"></span><span class="sk sk-m"></span></span></div>';
-  return `<section class="art-band" aria-label="Carregando artigos" aria-busy="true"><div class="art-band-head"><h2>Artigos mais recentes</h2></div><div class="agrid">${card+card+card}</div></section>`;
+  return `<section class="art-band" aria-label="Carregando artigos" aria-busy="true"><div class="art-band-head"><h2>Artigos mais recentes</h2></div><div class="agrid">${card.repeat(6)}</div></section>`;
 }
 function articleCard(a){
   if(a.db){
@@ -2448,7 +2448,7 @@ function viewLanding(){
     </div>
     ${!allArticles().length&&!window.__curioDbLoaded?skeletonBand():''}${allArticles().length?`<section class="art-band" aria-labelledby="art-title">
       <div class="art-band-head"><h2 id="art-title">Artigos mais recentes</h2><a class="go-r art-all" href="#artigos" aria-label="Ver todos os artigos">Ver todos ${ARROW}</a></div>
-      <div class="agrid">${allArticles().slice(0,3).map(articleCard).join('')}</div>
+      <div class="agrid">${allArticles().slice(0,6).map(articleCard).join('')}</div>
     </section>`:''}
     <section class="fb-band" aria-labelledby="fb-title">
       <div class="fb-inner">
