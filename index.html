@@ -2295,7 +2295,7 @@ function authorBlock(a){
   return `<footer class="art-author"><span class="art-author-photo">${ph}</span><span class="art-author-txt"><span class="art-author-by">Escrito por</span><span class="art-author-name">${escH(a.author_name)}</span>${a.author_url?`<a class="art-author-loc art-author-link" href="${escH(a.author_url)}" target="_blank" rel="noopener noreferrer">${escH(prettyUrl(a.author_url))}</a>`:''}</span></footer>`;
 }
 function viewArticle(a){
-  const others=allArticles().filter(x=>x!==a).slice(0,3);
+  const others=allArticles().filter(x=>x!==a).slice(0,2);
   if(a.db){
     if(!DOCS[a.id]) setTimeout(()=>loadArticleBody(a.id),0);
     const t=escH(a.articleTitle);
