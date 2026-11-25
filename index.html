@@ -1358,6 +1358,16 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .acard-foot .acard-go{margin:0!important;padding:0!important;flex:none;display:inline-flex;color:var(--accent)}
 .acard-foot .acard-go svg{width:20px;height:20px;transition:transform .2s}
 .acard:hover .acard-foot .acard-go svg{transform:translateX(3px)}
+.art-search{position:relative;max-width:480px;margin:-8px 0 16px}
+.art-search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:#3C34C1;pointer-events:none}
+.art-search input{width:100%;min-height:48px;padding:12px 16px 12px 48px;border:1.5px solid #E2DFFB;border-radius:999px;background:#FCFCFC;color:#1A1555;font:400 16px/24px "Open Sans",Arial,sans-serif;outline:none;transition:border-color .15s,box-shadow .15s}
+.art-search input::placeholder{color:#6B6589}
+.art-search input:focus{border-color:#3C34C1;box-shadow:0 0 0 3px #E2DFFB}
+:root[data-theme="dark"] .art-search input{background:#211B7E;border-color:#2B23A4;color:#FCFCFC}
+:root[data-theme="dark"] .art-search input::placeholder{color:#ABA5F3}
+:root[data-theme="dark"] .art-search svg{color:#D3F34F}
+:root[data-theme="dark"] .art-search input:focus{border-color:#D3F34F;box-shadow:none}
+.art-noresult{grid-column:1/-1}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2331,11 +2341,27 @@ function articleTags(){
   allArticles().forEach(a=>tagsOf(a).forEach(t=>{ const k=t.toLocaleLowerCase('pt-BR'); if(!m.has(k)) m.set(k,t); }));
   return [...m.values()].sort((x,y)=>x.localeCompare(y,'pt-BR',{sensitivity:'base'}));
 }
+let ART_Q='';
+const normQ=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function filteredArticles(){
-  if(!ART_TAB) return allArticles();
-  const k=ART_TAB.toLocaleLowerCase('pt-BR');
-  return allArticles().filter(a=>tagsOf(a).some(t=>t.toLocaleLowerCase('pt-BR')===k));
+  let list=allArticles();
+  if(ART_TAB){ const k=ART_TAB.toLocaleLowerCase('pt-BR'); list=list.filter(a=>tagsOf(a).some(t=>t.toLocaleLowerCase('pt-BR')===k)); }
+  const q=normQ(ART_Q).trim();
+  if(q){ const words=q.split(/\s+/); list=list.filter(a=>{ const hay=normQ([a.title,a.articleTitle,a.desc,a.author_name,...tagsOf(a)].join(' ')); return words.every(w=>hay.includes(w)); }); }
+  return list;
 }
+function artListHTML(){
+  const l=filteredArticles();
+  return l.length?l.map(articleCard).join(''):`<p class="art-empty art-noresult">Nenhum artigo encontrado${ART_Q.trim()?` para “${escH(ART_Q.trim())}”`:''}. Tente outra palavra.</p>`;
+}
+function articleSearch(){
+  return `<div class="art-search" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="art-q" placeholder="Buscar artigos" aria-label="Buscar artigos" autocomplete="off" value="${escH(ART_Q)}"></div>`;
+}
+document.addEventListener('input',e=>{
+  if(!e.target||e.target.id!=='art-q') return;
+  ART_Q=e.target.value;
+  const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML();
+});
 function articleTabs(){
   const tabs=['',...articleTags()];
   if(ART_TAB && !tabs.includes(ART_TAB)) ART_TAB='';
@@ -2345,12 +2371,12 @@ document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('.art-tab'); if(!b) return;
   ART_TAB=b.dataset.tab;
   document.querySelectorAll('.art-tab').forEach(x=>x.setAttribute('aria-selected',String(x===b)));
-  const g=document.getElementById('art-list'); if(g) g.innerHTML=filteredArticles().map(articleCard).join('');
+  const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML();
 });
 function viewArticles(){
   return `<section class="view page bg-50">
     ${pageHead('Artigos','Um espaço para ler sobre UX, produtos digitais e para pensar o futuro do design.')}
-    ${allArticles().length?`${articleTabs()}<div class="agrid" id="art-list" role="tabpanel">${filteredArticles().map(articleCard).join('')}</div>`:(window.__curioDbLoaded?'<p class="art-empty">Os primeiros artigos estão a caminho. Volta daqui a pouco!</p>':'<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigos…</span></div>')}
+    ${allArticles().length?`${articleSearch()}${articleTabs()}<div class="agrid" id="art-list" role="tabpanel">${artListHTML()}</div>`:(window.__curioDbLoaded?'<p class="art-empty">Os primeiros artigos estão a caminho. Volta daqui a pouco!</p>':'<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigos…</span></div>')}
   </section>`;
 }
 
