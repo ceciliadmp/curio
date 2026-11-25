@@ -110,7 +110,7 @@ function viewNotAdmin(s, err) {
 /* ======================= list ======================= */
 async function viewList() {
   shell(`<main class="ad-list"><div class="ad-list-head"><h1>Artigos</h1><button class="ad-btn" id="new" type="button">${ICON.plus}Novo artigo</button></div>
-    <div id="rows" class="ad-rows"><p class="ad-muted">Carregando…</p></div></main>`,
+    <div id="rows" class="ad-rows"><div class="ad-loading" role="status"><span class="ad-spin" aria-hidden="true"></span><span class="sr-only">Carregando…</span></div></div></main>`,
     { right: store.demo ? '' : '<button class="ad-btn ghost sm" id="out" type="button">Sair</button>' });
   const out = document.getElementById('out'); if (out) out.onclick = async () => { await store.signOut(); route(); };
   document.getElementById('new').onclick = async () => {

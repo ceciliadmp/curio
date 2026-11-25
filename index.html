@@ -1340,6 +1340,12 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .ab-purpose .ab-big{font-size:20px!important;line-height:30px!important;font-weight:500!important;max-width:none!important;color:#1A1555}
 :root[data-theme="dark"] .ab-purpose .ab-big{color:#FCFCFC}
 .hero-baloes img{display:block;width:100%;height:auto}
+.curio-spin-wrap{display:flex;justify-content:center;align-items:center;padding:64px 0}
+.curio-spin{width:40px;height:40px;border-radius:50%;border:4px solid #E2DFFB;border-top-color:#3C34C1;animation:curio-spin .8s linear infinite}
+:root[data-theme="dark"] .curio-spin{border-color:rgba(255,255,255,.14);border-top-color:#D3F34F}
+@keyframes curio-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.curio-spin{animation-duration:2.4s}}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2280,7 +2286,7 @@ function viewArticle(a){
     ${pageHead(t,escH(a.articleSub))}
     <p class="art-meta">${escH(a.tag)} · ${a.min} min de leitura${a.published?` · <time datetime="${escH(a.published)}">Publicado em ${fmtPub(a.published)}</time>`:''}</p>
     ${authorByline(a)}
-    <div class="art-read">${DOCS[a.id]?`<div class="rich">${CurioRender.toHTML(DOCS[a.id])}</div>${authorBlock(a)}`:'<p class="art-loading">Carregando artigo…</p>'}</div>
+    <div class="art-read">${DOCS[a.id]?`<div class="rich">${CurioRender.toHTML(DOCS[a.id])}</div>${authorBlock(a)}`:'<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigo…</span></div>'}</div>
     ${others.length?`<section class="art-more"><h2>Continue lendo</h2><div class="agrid">${others.map(articleCard).join('')}</div></section>`:''}
   </article>`;
   }
@@ -2326,7 +2332,7 @@ document.addEventListener('click',e=>{
 function viewArticles(){
   return `<section class="view page bg-50">
     ${pageHead('Artigos','Um espaço para ler sobre UX, produtos digitais e para pensar o futuro do design.')}
-    ${allArticles().length?`${articleTabs()}<div class="agrid" id="art-list" role="tabpanel">${filteredArticles().map(articleCard).join('')}</div>`:(window.__curioDbLoaded?'<p class="art-empty">Os primeiros artigos estão a caminho. Volta daqui a pouco!</p>':'<p class="art-empty">Carregando artigos…</p>')}
+    ${allArticles().length?`${articleTabs()}<div class="agrid" id="art-list" role="tabpanel">${filteredArticles().map(articleCard).join('')}</div>`:(window.__curioDbLoaded?'<p class="art-empty">Os primeiros artigos estão a caminho. Volta daqui a pouco!</p>':'<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigos…</span></div>')}
   </section>`;
 }
 
@@ -2507,7 +2513,7 @@ function route(){
   else if(h==='sobre'||h==='quem-somos'){ html=viewAbout(); title='Sobre · Curió'; nav='sobre'; }
   else if(h==='artigos'){ html=viewArticles(); title='Artigos · Curió'; nav='artigos'; }
   else if(h.startsWith('artigo-') && articleById(h.slice(7))){ const a=articleById(h.slice(7)); html=viewArticle(a); title=(a.articleTitle||a.title)+' · Curió'; nav='artigos'; }
-  else if(h.startsWith('artigo-') && !window.__curioDbLoaded){ html='<section class="view page bg-50"><p class="art-empty">Carregando artigo…</p></section>'; nav='artigos'; }
+  else if(h.startsWith('artigo-') && !window.__curioDbLoaded){ html='<section class="view page bg-50"><div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigo…</span></div></section>'; nav='artigos'; }
   else if(h==='trilhas'){ html=viewTrails(); title='Trilhas · Curió'; nav='trilhas'; }
   else if(h==='design-comportamental'){ html=viewTrail(); title='Design Comportamental · Curió'; nav='trilhas'; }
   else if(h==='contato'){ html=viewContact(); title='Contato · Curió'; nav='contato'; }
