@@ -1349,7 +1349,7 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .fb-spin{display:inline-block;vertical-align:middle;width:24px;height:24px;border-radius:50%;border:3px solid rgba(252,252,252,.25);border-top-color:#D3F34F;animation:fb-spin .8s linear infinite}
 @keyframes fb-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.fb-spin{animation-duration:2.4s}}
-.acard-author{display:flex;align-items:center;gap:8px;margin-top:4px;min-width:0}
+.acard-author{display:flex;align-items:center;gap:8px;min-width:0}
 .acard-author-photo{flex:none;width:20px;height:20px;border-radius:999px;overflow:hidden;background:#EFEDFD;color:#3C34C1;display:grid;place-items:center;font:600 9px/1 "Poppins",system-ui,sans-serif}
 .acard-author-photo img{width:100%;height:100%;object-fit:cover;display:block}
 .acard-author-name{font:600 13px/20px "Open Sans",Arial,sans-serif;color:#4D4D4D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2265,11 +2265,11 @@ function articleCard(a){
     const illo=a.cover?`<img src="${escH(a.cover)}" alt="" loading="lazy" style="object-position:${a.fx}% ${a.fy}%">`:SV(SHAPE.trevo('#3C34C1')+FACE.curiosa);
     return `<a class="acard" href="#artigo-${encodeURIComponent(a.id)}">
     <span class="acard-illo" style="background:${a.cover?'#EFEDFD':'#D3F34F'}">${illo}</span>
-    <span class="acard-body"><span class="acard-meta">${escH(a.tag)} · ${a.min} min de leitura</span><span class="acard-title">${escH(a.title)}</span><span class="acard-desc">${escH(a.desc)}</span>${cardAuthor(a)}<span class="go-r acard-go">Ler o artigo ${ARROW}</span></span></a>`;
+    <span class="acard-body">${cardAuthor(a)}<span class="acard-meta">${escH(a.tag)} · ${a.min} min de leitura</span><span class="acard-title">${escH(a.title)}</span><span class="acard-desc">${escH(a.desc)}</span><span class="go-r acard-go">Ler o artigo ${ARROW}</span></span></a>`;
   }
   return `<a class="acard" href="#artigo-${a.id}">
     <span class="acard-illo" style="background:${ARTICLE_BANDS[a.id]}">${ARTICLE_SHAPES[a.id]}</span>
-    <span class="acard-body"><span class="acard-meta">${a.tag} · ${a.min} min de leitura</span><span class="acard-title">${a.title}</span><span class="acard-desc">${a.desc}</span>${cardAuthor(a)}<span class="go-r acard-go">Ler o artigo ${ARROW}</span></span></a>`;
+    <span class="acard-body">${cardAuthor(a)}<span class="acard-meta">${a.tag} · ${a.min} min de leitura</span><span class="acard-title">${a.title}</span><span class="acard-desc">${a.desc}</span><span class="go-r acard-go">Ler o artigo ${ARROW}</span></span></a>`;
 }
 const prettyUrl=u=>{ let t=String(u||'').replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,''); try{ t=decodeURI(t); }catch(e){} return t; };
 function cardAuthor(a){
