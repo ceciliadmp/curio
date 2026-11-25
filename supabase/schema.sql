@@ -56,6 +56,17 @@ drop trigger if exists articles_touch on public.articles;
 create trigger articles_touch before update on public.articles
   for each row execute function public.touch_updated_at();
 
+-- A data de publicação é fixa: editar ou republicar não muda a posição do artigo no site.
+create or replace function public.keep_published_at()
+returns trigger language plpgsql as $$
+begin
+  if old.published_at is not null then new.published_at = old.published_at; end if;
+  return new;
+end $$;
+drop trigger if exists articles_keep_published_at on public.articles;
+create trigger articles_keep_published_at before update on public.articles
+  for each row execute function public.keep_published_at();
+
 alter table public.articles enable row level security;
 drop policy if exists "todos leem publicados" on public.articles;
 create policy "todos leem publicados" on public.articles

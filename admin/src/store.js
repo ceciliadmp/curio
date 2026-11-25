@@ -2,6 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 const EMPTY_DOC = { type: 'doc', content: [{ type: 'paragraph' }] };
+// Ordem fixa: pela data de publicação (ou de criação, para rascunhos). Editar não muda a posição.
+const byPosition = rows => rows.sort((a, b) => String(b.published_at || b.created_at || '').localeCompare(String(a.published_at || a.created_at || '')));
 const LIST_FIELDS = 'id,title,subtitle,status,slug,updated_at,published_at,reading_minutes,display_title,cover_url';
 /* Published articles are edited in a separate "draft" copy, so changes only go live on "Atualizar publicação". */
 const withDraft = (row, extra) => {
@@ -50,7 +52,7 @@ export function supabaseStore(url, key) {
       const rows = must(await sb.from('admins').select('user_id').eq('user_id', s.user.id).limit(1));
       return rows.length > 0;
     },
-    async list() { return must(await sb.from('articles').select(LIST_FIELDS + ',pending:draft->>title').order('updated_at', { ascending: false })); },
+    async list() { return byPosition(must(await sb.from('articles').select(LIST_FIELDS + ',created_at,pending:draft->>title'))); },
     async get(id) { return must(await sb.from('articles').select('*').eq('id', id).single()); },
     async create(defaults = {}) { return must(await sb.from('articles').insert({ content: EMPTY_DOC, ...defaults }).select('*').single()); },
     async save(id, patch, live) { return must(await sb.from('articles').update(live ? { draft: patch } : patch).eq('id', id).select('id,updated_at').single()); },
@@ -91,7 +93,7 @@ export function localStore() {
     async signIn() {},
     async signOut() {},
     async isAdmin() { return true; },
-    async list() { return read().sort((a, b) => b.updated_at.localeCompare(a.updated_at)).map(pick); },
+    async list() { return byPosition(read()).map(pick); },
     async get(id) { const r = read().find(x => x.id === id); if (!r) throw new Error('Artigo não encontrado'); return r; },
     async create(defaults = {}) {
       const r = { author_name: '', author_url: '', author_photo_url: null, id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())), title: '', subtitle: '', content: EMPTY_DOC,
