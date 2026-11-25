@@ -2518,9 +2518,10 @@ function mountDemo(b,S){
    ========================================================= */
 /* "Voltar": goes back in the site's own history when there is one, else to the article list */
 let navCount=0;
-document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-back]'); if(a&&navCount>1){e.preventDefault(); history.back();}});
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-back]'); if(a&&navCount>0){e.preventDefault(); history.back();}});
+/* conta só navegações reais dentro do site (re-renderizações não contam) */
+window.addEventListener('hashchange',()=>{navCount++;});
 function route(){
-  navCount++;
   clearTimers();
   const h=location.hash.slice(1);
   let html, after=null, title='Curió · Design que se aprende na troca', S=null, nav='inicio';
