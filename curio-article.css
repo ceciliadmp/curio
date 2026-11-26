@@ -32,3 +32,11 @@
 .rich .embed-link-url{font:400 15px/22px "Open Sans",Arial,sans-serif;overflow-wrap:anywhere;color:var(--rich-soft)}
 @media (max-width:599px){.art-read .rich .pull-quote,.art-read .rich .pull-quote p,.rich .pull-quote{font-size:18px!important;line-height:30px!important}}
 .rich .pull-quote,.rich .pull-quote p,.art-read .rich .pull-quote,.art-read .rich .pull-quote p{text-align:left!important;font-style:normal!important;font-weight:400!important}
+/* Citação: box anil claro, texto na cor do corpo, sem itálico */
+.rich .pull-quote,.art-read .pull-quote,.art-read .rich .pull-quote{position:relative;margin:32px 0!important;padding:24px 24px 24px 64px!important;background:#EFEDFD!important;border:0!important;border-radius:16px!important;text-align:left!important;font-style:normal!important}
+.rich .pull-quote::before,.art-read .pull-quote::before{content:"\201C";position:absolute;left:20px;top:18px;font:600 48px/1 "Poppins",system-ui,sans-serif;color:#3C34C1}
+.rich .pull-quote p,.art-read .pull-quote p,.art-read .rich .pull-quote p{margin:0!important;font:400 19px/32px "Poppins",system-ui,sans-serif!important;font-style:normal!important;text-align:left!important;color:#1A1555!important}
+:root[data-theme="dark"] .rich .pull-quote,:root[data-theme="dark"] .art-read .pull-quote,:root[data-theme="dark"] .art-read .rich .pull-quote{background:#2B23A4!important}
+:root[data-theme="dark"] .rich .pull-quote p,:root[data-theme="dark"] .art-read .pull-quote p,:root[data-theme="dark"] .art-read .rich .pull-quote p{color:#FCFCFC!important}
+:root[data-theme="dark"] .rich .pull-quote::before,:root[data-theme="dark"] .art-read .pull-quote::before{color:#D3F34F}
+@media (max-width:599px){.rich .pull-quote,.art-read .pull-quote,.art-read .rich .pull-quote{padding:20px 20px 20px 52px!important}.rich .pull-quote::before,.art-read .pull-quote::before{left:16px;top:16px;font-size:40px}.rich .pull-quote p,.art-read .pull-quote p,.art-read .rich .pull-quote p{font-size:18px!important;line-height:30px!important}}
