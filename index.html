@@ -1444,6 +1444,9 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
   @keyframes af-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 }
 @media (prefers-reduced-motion:reduce){.art-filters.searching .art-search{animation:none}}
+.art-filters .art-filter{width:240px}
+.art-filters .art-search{width:460px!important}
+@media (max-width:759px){.art-filters .art-filter{width:auto}.art-filters .art-filter[data-f="tema"]{flex-basis:100%}.art-filters .art-search{width:100%!important}}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2416,11 +2419,12 @@ function articleTags(){
   allArticles().forEach(a=>tagsOf(a).forEach(t=>{ const k=t.toLocaleLowerCase('pt-BR'); if(!m.has(k)) m.set(k,t); }));
   return [...m.values()].sort((x,y)=>x.localeCompare(y,'pt-BR',{sensitivity:'base'}));
 }
-let ART_Q='';
+let ART_Q='', ART_AUTHOR='';
 const normQ=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function filteredArticles(){
   let list=allArticles();
   if(ART_TAB){ const k=ART_TAB.toLocaleLowerCase('pt-BR'); list=list.filter(a=>tagsOf(a).some(t=>t.toLocaleLowerCase('pt-BR')===k)); }
+  if(ART_AUTHOR) list=list.filter(a=>String(a.author_name||'').trim()===ART_AUTHOR);
   const q=normQ(ART_Q).trim();
   if(q){ const words=q.split(/\s+/); list=list.filter(a=>{ const hay=normQ([a.title,a.articleTitle,a.desc,a.author_name,...tagsOf(a)].join(' ')); return words.every(w=>hay.includes(w)); }); }
   return list;
@@ -2437,47 +2441,63 @@ document.addEventListener('input',e=>{
   ART_Q=e.target.value;
   const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML();
 });
+function ddHTML(key,label,items,cur,count){
+  const opt=v=>`<li role="option" class="af-opt" tabindex="-1" data-v="${escH(v)}" aria-selected="${v===cur}"><svg class="af-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="af-name">${v?escH(v):'Todos'}</span><span class="af-count">${count(v)}</span></li>`;
+  return `<div class="art-filter" data-f="${key}"><span class="af-label" id="af-lbl-${key}">${label}</span>
+    <div class="af-wrap"><button type="button" class="af-btn" id="af-${key}" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="af-lbl-${key} af-${key}"><span class="af-name">${cur?escH(cur):'Todos'}</span><span class="af-count">${count(cur)}</span><svg class="af-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+    <ul class="af-menu" role="listbox" aria-labelledby="af-lbl-${key}" hidden>${['',...items].map(opt).join('')}</ul></div></div>`;
+}
 function articleFilter(){
   const tags=articleTags(), all=allArticles();
   if(ART_TAB && !tags.includes(ART_TAB)) ART_TAB='';
-  const count=t=>t?all.filter(a=>tagsOf(a).some(x=>x.toLocaleLowerCase('pt-BR')===t.toLocaleLowerCase('pt-BR'))).length:all.length;
-  const items=['',...tags];
-  const opt=v=>`<li role="option" class="af-opt" tabindex="-1" data-v="${escH(v)}" aria-selected="${v===ART_TAB}"><svg class="af-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="af-name">${v?escH(v):'Todos'}</span><span class="af-count">${count(v)}</span></li>`;
-  return `<div class="art-filter"><span class="af-label" id="af-lbl">Filtre por tema</span>
-    <div class="af-wrap"><button type="button" class="af-btn" id="art-tema" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="af-lbl art-tema"><span class="af-name">${ART_TAB?escH(ART_TAB):'Todos'}</span><span class="af-count">${count(ART_TAB)}</span><svg class="af-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-    <ul class="af-menu" role="listbox" aria-labelledby="af-lbl" hidden>${items.map(opt).join('')}</ul></div></div>`;
+  const k=t=>t.toLocaleLowerCase('pt-BR');
+  return ddHTML('tema','Filtre por tema',tags,ART_TAB,t=>t?all.filter(a=>tagsOf(a).some(x=>k(x)===k(t))).length:all.length);
 }
-const afEls=()=>{ const w=document.querySelector('.af-wrap'); return w&&{w,btn:w.querySelector('.af-btn'),menu:w.querySelector('.af-menu'),opts:[...w.querySelectorAll('.af-opt')]}; };
-function afOpen(on,focusBtn){
-  const e=afEls(); if(!e) return;
+function articleAuthors(){
+  const set=new Set(); allArticles().forEach(a=>{ const n=String(a.author_name||'').trim(); if(n) set.add(n); });
+  return [...set].sort((x,y)=>x.localeCompare(y,'pt-BR',{sensitivity:'base'}));
+}
+function authorFilter(){
+  const names=articleAuthors(), all=allArticles();
+  if(!names.length) return '';
+  if(ART_AUTHOR && !names.includes(ART_AUTHOR)) ART_AUTHOR='';
+  return ddHTML('autor','Filtre por escritor(a)',names,ART_AUTHOR,n=>n?all.filter(a=>String(a.author_name||'').trim()===n).length:all.length);
+}
+const AF={ tema:{set:v=>{ART_TAB=v;},html:()=>articleFilter()}, autor:{set:v=>{ART_AUTHOR=v;},html:()=>authorFilter()} };
+const afEls=f=>f&&{f,w:f.querySelector('.af-wrap'),btn:f.querySelector('.af-btn'),menu:f.querySelector('.af-menu'),opts:[...f.querySelectorAll('.af-opt')]};
+function afOpen(f,on,focusBtn){
+  const e=afEls(f); if(!e) return;
   e.menu.hidden=!on; e.btn.setAttribute('aria-expanded',String(on)); e.w.classList.toggle('open',on);
   if(on){ (e.opts.find(o=>o.getAttribute('aria-selected')==='true')||e.opts[0]).focus(); }
   else if(focusBtn) e.btn.focus();
 }
-function afPick(v){
-  ART_TAB=v; const w=document.querySelector('.art-filter');
-  if(w) w.outerHTML=articleFilter();
+const afCloseAll=except=>document.querySelectorAll('.art-filter').forEach(f=>{ if(f!==except && !f.querySelector('.af-menu').hidden) afOpen(f,false); });
+function afPick(f,v){
+  const key=f.dataset.f; AF[key].set(v);
+  f.outerHTML=AF[key].html();
   const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML();
-  const b=document.getElementById('art-tema'); if(b) b.focus();
+  const b=document.getElementById('af-'+key); if(b) b.focus();
 }
 document.addEventListener('click',e=>{
   const t=e.target; if(!t.closest) return;
-  if(t.closest('.af-btn')){ const e2=afEls(); afOpen(e2.menu.hidden); return; }
-  const o=t.closest('.af-opt'); if(o){ afPick(o.dataset.v); return; }
-  if(!t.closest('.af-wrap')){ const e2=afEls(); if(e2&&!e2.menu.hidden) afOpen(false); }
+  const btn=t.closest('.af-btn');
+  if(btn){ const f=btn.closest('.art-filter'); afCloseAll(f); afOpen(f,f.querySelector('.af-menu').hidden); return; }
+  const o=t.closest('.af-opt'); if(o){ afPick(o.closest('.art-filter'),o.dataset.v); return; }
+  if(!t.closest('.af-wrap')) afCloseAll(null);
 });
 document.addEventListener('keydown',e=>{
   const t=e.target; if(!t.closest) return;
-  if(t.closest('.af-btn') && (e.key==='ArrowDown'||e.key==='ArrowUp')){ e.preventDefault(); afOpen(true); return; }
+  const btn=t.closest('.af-btn');
+  if(btn && (e.key==='ArrowDown'||e.key==='ArrowUp')){ e.preventDefault(); const f=btn.closest('.art-filter'); afCloseAll(f); afOpen(f,true); return; }
   const o=t.closest('.af-opt'); if(!o) return;
-  const {opts}=afEls(), i=opts.indexOf(o);
+  const f=o.closest('.art-filter'), {opts}=afEls(f), i=opts.indexOf(o);
   if(e.key==='ArrowDown'){ e.preventDefault(); opts[Math.min(i+1,opts.length-1)].focus(); }
   else if(e.key==='ArrowUp'){ e.preventDefault(); opts[Math.max(i-1,0)].focus(); }
   else if(e.key==='Home'){ e.preventDefault(); opts[0].focus(); }
   else if(e.key==='End'){ e.preventDefault(); opts[opts.length-1].focus(); }
-  else if(e.key==='Enter'||e.key===' '){ e.preventDefault(); afPick(o.dataset.v); }
-  else if(e.key==='Escape'){ e.preventDefault(); afOpen(false,true); }
-  else if(e.key==='Tab'){ afOpen(false); }
+  else if(e.key==='Enter'||e.key===' '){ e.preventDefault(); afPick(f,o.dataset.v); }
+  else if(e.key==='Escape'){ e.preventDefault(); afOpen(f,false,true); }
+  else if(e.key==='Tab'){ afOpen(f,false); }
 });
 function searchToggle(){
   const on=!!ART_Q.trim();
@@ -2494,7 +2514,7 @@ document.addEventListener('click',e=>{
 function viewArticles(){
   return `<section class="view page bg-50">
     ${pageHead('Artigos','Um espaço para ler sobre UX, produtos digitais e para pensar o futuro do design.')}
-    ${allArticles().length?`<div class="art-filters${ART_Q.trim()?' searching':''}">${articleSearch()}${articleFilter()}${searchToggle()}</div><div class="agrid" id="art-list" aria-live="polite">${artListHTML()}</div>`:(window.__curioDbLoaded?'<p class="art-empty">Os primeiros artigos estão a caminho. Volta daqui a pouco!</p>':'<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigos…</span></div>')}
+    ${allArticles().length?`<div class="art-filters${ART_Q.trim()?' searching':''}">${articleSearch()}${articleFilter()}${authorFilter()}${searchToggle()}</div><div class="agrid" id="art-list" aria-live="polite">${artListHTML()}</div>`:(window.__curioDbLoaded?'<p class="art-empty">Os primeiros artigos estão a caminho. Volta daqui a pouco!</p>':'<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigos…</span></div>')}
   </section>`;
 }
 
