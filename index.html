@@ -2330,7 +2330,12 @@ const setRows=rows=>{ DB_ARTICLES=(rows||[]).filter(x=>x&&x.slug).map(mapRow); }
 /* Última lista vista neste navegador: aparece na hora, enquanto a nova chega. */
 let cachedList=null;
 try{ cachedList=localStorage.getItem(LIST_CACHE); if(cachedList && window.CurioRender){ setRows(JSON.parse(cachedList)); window.__curioDbLoaded=true; } }catch(e){ cachedList=null; }
-const rerouteArticles=()=>{ const h=location.hash.slice(1); if(h===''||h==='artigos'||h.startsWith('artigo-')){ const y=scrollY; route(); if(!h.startsWith('artigo-')) scrollTo(0,y); } };
+/* Rota atual: artigos têm endereço próprio (/artigos/<slug>); o resto usa #. */
+const routeKey=()=>{ const m=location.pathname.match(/^\/artigos\/([^/]+)\/?$/); if(m){ try{ return 'artigo-'+decodeURIComponent(m[1]); }catch(e){ return 'artigo-'+m[1]; } } return location.hash.slice(1); };
+const articlePath=slug=>'/artigos/'+encodeURIComponent(slug);
+/* Conteúdo que já veio pronto no HTML (página do artigo gerada no servidor): evita baixar de novo. */
+try{ const pre=document.getElementById('curio-pre'); if(pre){ const j=JSON.parse(pre.textContent); if(j&&j.slug&&j.content) DOCS[j.slug]=j.content; } }catch(e){}
+const rerouteArticles=()=>{ const h=routeKey(); if(h===''||h==='artigos'||h.startsWith('artigo-')){ const y=scrollY; route(); if(!h.startsWith('artigo-')) scrollTo(0,y); } };
 async function loadDbArticles(){
   const c=window.CURIO_CONFIG||{};
   let changed=false;
@@ -2355,7 +2360,7 @@ function loadArticleBody(slug){
     .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
     .then(rows=>{ DOCS[slug]=(rows[0]&&rows[0].content)||{type:'doc',content:[]}; })
     .catch(()=>{ DOCS[slug]={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Não deu pra carregar este artigo agora. Tente de novo em instantes.'}]}]}; bodyLoading[slug]=false; })
-    .finally(()=>{ if(location.hash.slice(1)==='artigo-'+slug){ route(); } });
+    .finally(()=>{ if(routeKey()==='artigo-'+slug){ route(); } });
 }
 function skeletonBand(){
   const card='<div class="acard skel" aria-hidden="true"><span class="acard-illo"></span><span class="acard-body"><span class="sk sk-s"></span><span class="sk sk-l"></span><span class="sk sk-m"></span><span class="sk sk-m"></span></span></div>';
@@ -2364,7 +2369,7 @@ function skeletonBand(){
 function articleCard(a){
   if(a.db){
     const illo=a.cover?`<img src="${escH(a.cover)}" alt="" loading="lazy" style="object-position:${a.fx}% ${a.fy}%">`:SV(SHAPE.trevo('#3C34C1')+FACE.curiosa);
-    return `<a class="acard" href="#artigo-${encodeURIComponent(a.id)}">
+    return `<a class="acard" href="${articlePath(a.id)}">
     <span class="acard-illo" style="background:${a.cover?'#EFEDFD':'#D3F34F'}">${illo}</span>
     <span class="acard-body"><span class="acard-meta">${escH(a.tag)} · ${a.min} min de leitura</span><span class="acard-title">${escH(a.title)}</span><span class="acard-desc">${escH(a.desc)}</span><span class="acard-foot">${cardAuthor(a)}</span></span></a>`;
   }
@@ -2696,7 +2701,9 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 window.addEventListener('hashchange',()=>{navCount++;});
 function route(){
   clearTimers();
-  const h=location.hash.slice(1);
+  /* link antigo (#artigo-x): troca pelo endereço próprio do artigo */
+  if(location.pathname==='/' && /^#artigo-/.test(location.hash)) history.replaceState(history.state,'',articlePath(decodeURIComponent(location.hash.slice(8))));
+  const h=routeKey();
   let html, after=null, title='Curió · Design que se aprende na troca', S=null, nav='inicio';
   if(SECTIONS[h]){ S=SECTIONS[h]; if(curS!==S) query=''; html=viewHub(S); title=S.name+' · Curió';
   }
@@ -2705,6 +2712,7 @@ function route(){
   else if(h==='sobre'||h==='quem-somos'){ html=viewAbout(); title='Sobre · Curió'; nav='sobre'; }
   else if(h==='artigos'){ html=viewArticles(); title='Artigos · Curió'; nav='artigos'; }
   else if(h.startsWith('artigo-') && articleById(h.slice(7))){ const a=articleById(h.slice(7)); html=viewArticle(a); title=(a.articleTitle||a.title)+' · Curió'; nav='artigos'; }
+  else if(h.startsWith('artigo-') && !window.__curioDbLoaded && app.querySelector('[data-prerender]')){ html=app.innerHTML; nav='artigos'; }
   else if(h.startsWith('artigo-') && !window.__curioDbLoaded){ html='<section class="view page bg-50"><div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigo…</span></div></section>'; nav='artigos'; }
   else if(h==='trilhas'){ html=viewTrails(); title='Trilhas · Curió'; nav='trilhas'; }
   else if(h==='design-comportamental'){ html=viewTrail(); title='Design Comportamental · Curió'; nav='trilhas'; }
@@ -2715,6 +2723,7 @@ function route(){
   document.querySelectorAll('[data-nav]').forEach(a=>a.dataset.nav===nav?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
   app.innerHTML=html; after&&after();
   document.title=title;
+  window.__lastRouted=location.pathname+location.hash;
   window.scrollTo({top:0,behavior:'instant'});
 }
 /* Feedback form: each person writes only under feedback/<their id>; the owner and Editors read them all. */
@@ -2810,6 +2819,21 @@ document.querySelectorAll('.theme-sw').forEach(b=>b.addEventListener('click',()=
 })();
 
 window.addEventListener('hashchange',route);
+/* Navegação entre endereços (artigos têm caminho próprio; o resto usa #) sem recarregar a página. */
+window.addEventListener('popstate',()=>{ setTimeout(()=>{ const k=location.pathname+location.hash; if(k!==window.__lastRouted) route(); },0); });
+document.addEventListener('click',e=>{
+  if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return;
+  const a=e.target.closest&&e.target.closest('a[href]'); if(!a||a.target||a.hasAttribute('download')) return;
+  const href=a.getAttribute('href');
+  let to=null;
+  if(/^\/artigos\/[^/?#]+$/.test(href)) to=href;
+  else if(href.charAt(0)==='#' && location.pathname!=='/') to='/'+href;
+  else if(href.startsWith('/#') && location.pathname!=='/') to=href;
+  if(!to) return;
+  e.preventDefault();
+  history.pushState({},'',to);
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+});
 /* Mobile: "Voltar" flutuante no artigo. Some ao descer; volta ao subir ou ao tocar na tela. */
 (function(){
   let lastY=scrollY, acc=0, el=null, shown=false;

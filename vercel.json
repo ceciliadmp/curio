@@ -1,3 +1,14 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/artigos", "destination": "/#artigos", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/artigos/:slug", "destination": "/api/artigo?slug=:slug" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
+  ],
+  "functions": {
+    "api/artigo.js": { "includeFiles": "{index.html,curio-render.js,config.js}" },
+    "api/sitemap.js": { "includeFiles": "config.js" }
+  }
 }

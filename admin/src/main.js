@@ -40,7 +40,7 @@ function toast(msg, kind) {
 }
 const errMsg = e => (e && (e.message || e.error_description)) || 'Algo deu errado.';
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
-const siteUrl = slug => `${location.origin}/#artigo-${encodeURIComponent(slug)}`;
+const siteUrl = slug => `${location.origin}/artigos/${encodeURIComponent(slug)}`;
 
 /* The last author used becomes the default for the next new article. */
 const AUTHOR_KEY = 'curio-last-author';
