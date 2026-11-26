@@ -40,3 +40,11 @@
 :root[data-theme="dark"] .rich .pull-quote p,:root[data-theme="dark"] .art-read .pull-quote p,:root[data-theme="dark"] .art-read .rich .pull-quote p{color:#FCFCFC!important}
 :root[data-theme="dark"] .rich .pull-quote::before,:root[data-theme="dark"] .art-read .pull-quote::before{color:#D3F34F}
 @media (max-width:599px){.rich .pull-quote,.art-read .pull-quote,.art-read .rich .pull-quote{padding:20px 20px 20px 52px!important}.rich .pull-quote::before,.art-read .pull-quote::before{left:16px;top:16px;font-size:40px}.rich .pull-quote p,.art-read .pull-quote p,.art-read .rich .pull-quote p{font-size:18px!important;line-height:30px!important}}
+/* Citação v2: tipografia do corpo e aspas de abrir e fechar em Literata */
+.rich .pull-quote,.art-read .pull-quote,.art-read .rich .pull-quote{padding:28px 64px!important}
+.rich .pull-quote::before,.art-read .pull-quote::before,.rich .pull-quote::after,.art-read .pull-quote::after{position:absolute;font:400 56px/1 "Literata",Georgia,serif!important;color:#3C34C1;pointer-events:none}
+.rich .pull-quote::before,.art-read .pull-quote::before{content:"\201C";left:18px;top:16px}
+.rich .pull-quote::after,.art-read .pull-quote::after{content:"\201D";right:18px;bottom:-8px}
+.rich .pull-quote p,.art-read .pull-quote p,.art-read .rich .pull-quote p{font:400 19px/32px "Literata",Georgia,serif!important}
+:root[data-theme="dark"] .rich .pull-quote::after,:root[data-theme="dark"] .art-read .pull-quote::after{color:#D3F34F}
+@media (max-width:599px){.rich .pull-quote,.art-read .pull-quote,.art-read .rich .pull-quote{padding:24px 48px!important}.rich .pull-quote::before,.art-read .pull-quote::before,.rich .pull-quote::after,.art-read .pull-quote::after{font-size:44px!important}.rich .pull-quote::before,.art-read .pull-quote::before{left:12px;top:14px}.rich .pull-quote::after,.art-read .pull-quote::after{right:12px;bottom:-6px}.rich .pull-quote p,.art-read .pull-quote p,.art-read .rich .pull-quote p{font-size:18px!important;line-height:30px!important}}
