@@ -1423,6 +1423,23 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 :root[data-theme="dark"] .af-opt[aria-selected="true"] .af-count{background:#D3F34F;color:#1A1555}
 .art-filters .art-search{width:40%!important;min-width:400px}
 @media (max-width:759px){.art-filters{flex-direction:column;align-items:stretch}.art-filters .art-search{width:100%!important;min-width:0}.art-filter{min-width:0}}
+.art-search-toggle{display:none}
+@media (max-width:759px){
+  .art-filters{flex-direction:row!important;flex-wrap:wrap;align-items:flex-end!important;gap:12px}
+  .art-filters .art-filter{flex:1;order:1}
+  .art-search-toggle{order:2;display:grid;place-items:center;flex:none;width:48px;height:48px;padding:0;border:1.5px solid #E2DFFB;border-radius:999px;background:#FCFCFC;color:#3C34C1;cursor:pointer;transition:border-color .15s,background .15s}
+  .art-search-toggle:hover{border-color:#ABA5F3}
+  .art-search-toggle:focus-visible{outline:none;border-color:#3C34C1;box-shadow:0 0 0 3px #E2DFFB}
+  .art-search-toggle svg{width:20px;height:20px}
+  .art-search-toggle .ico-close{display:none}
+  .art-filters.searching .art-search-toggle{background:#3C34C1;border-color:#3C34C1;color:#FCFCFC}
+  .art-filters.searching .art-search-toggle .ico-close{display:block}
+  .art-filters.searching .art-search-toggle .ico-search{display:none}
+  .art-filters .art-search{order:3;display:none;width:100%!important;flex-basis:100%}
+  .art-filters.searching .art-search{display:block}
+  :root[data-theme="dark"] .art-search-toggle{background:#211B7E;border-color:#2B23A4;color:#D3F34F}
+  :root[data-theme="dark"] .art-filters.searching .art-search-toggle{background:#D3F34F;border-color:#D3F34F;color:#1A1555}
+}
 </style>
 <style>html,body{margin:0}
 .art-empty{margin:0;padding:32px;border-radius:16px;background:#FCFCFC;box-shadow:inset 0 0 0 1.5px #E2DFFB;color:#4D4D4D;font:400 16px/24px "Open Sans",Arial,sans-serif}
@@ -2458,10 +2475,22 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Escape'){ e.preventDefault(); afOpen(false,true); }
   else if(e.key==='Tab'){ afOpen(false); }
 });
+function searchToggle(){
+  const on=!!ART_Q.trim();
+  return `<button type="button" class="art-search-toggle" aria-controls="art-q" aria-expanded="${on}" aria-label="${on?'Fechar busca':'Buscar artigos'}"><svg class="ico-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><svg class="ico-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('.art-search-toggle'); if(!b) return;
+  const box=b.closest('.art-filters'), on=!box.classList.contains('searching');
+  box.classList.toggle('searching',on); b.setAttribute('aria-expanded',String(on)); b.setAttribute('aria-label',on?'Fechar busca':'Buscar artigos');
+  const q=document.getElementById('art-q');
+  if(on){ q&&q.focus(); }
+  else if(ART_Q){ ART_Q=''; if(q) q.value=''; const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML(); }
+});
 function viewArticles(){
   return `<section class="view page bg-50">
     ${pageHead('Artigos','Um espaço para ler sobre UX, produtos digitais e para pensar o futuro do design.')}
-    ${allArticles().length?`<div class="art-filters">${articleSearch()}${articleFilter()}</div><div class="agrid" id="art-list" aria-live="polite">${artListHTML()}</div>`:(window.__curioDbLoaded?'<p class="art-empty">Os primeiros artigos estão a caminho. Volta daqui a pouco!</p>':'<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigos…</span></div>')}
+    ${allArticles().length?`<div class="art-filters${ART_Q.trim()?' searching':''}">${articleSearch()}${articleFilter()}${searchToggle()}</div><div class="agrid" id="art-list" aria-live="polite">${artListHTML()}</div>`:(window.__curioDbLoaded?'<p class="art-empty">Os primeiros artigos estão a caminho. Volta daqui a pouco!</p>':'<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigos…</span></div>')}
   </section>`;
 }
 
