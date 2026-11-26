@@ -99,6 +99,7 @@
     switch (n.type) {
       case 'paragraph': return '<p>' + inline(n.content) + '</p>';
       case 'heading': var l = a.level === 3 ? 3 : 2; return '<h' + l + '>' + inline(n.content) + '</h' + l + '>';
+      case 'highlight': return '<p class="text-highlight">' + inline(n.content) + '</p>';
       case 'pullQuote': return '<blockquote class="pull-quote"><p>' + inline(n.content) + '</p></blockquote>';
       case 'horizontalRule': return '<hr class="divider">';
       case 'bulletList': return '<ul>' + (n.content || []).map(block).join('') + '</ul>';

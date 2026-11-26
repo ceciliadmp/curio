@@ -19,6 +19,33 @@ export const PullQuote = Node.create({
   }
 });
 
+/* Texto em destaque: parágrafo um pouco maior, com recuo à esquerda. */
+export const Highlight = Node.create({
+  name: 'highlight',
+  group: 'block',
+  content: 'inline*',
+  defining: true,
+  parseHTML() { return [{ tag: 'p.text-highlight', priority: 60 }]; },
+  renderHTML({ HTMLAttributes }) { return ['p', mergeAttributes(HTMLAttributes, { class: 'text-highlight' }), 0]; },
+  addCommands() {
+    return {
+      toggleHighlight: () => ({ editor, commands }) =>
+        editor.isActive('highlight') ? commands.setParagraph() : commands.setNode('highlight')
+    };
+  },
+  addKeyboardShortcuts() {
+    return {
+      // Enter no fim do destaque continua num parágrafo normal
+      Enter: ({ editor }) => {
+        const { $from, empty } = editor.state.selection;
+        if (!empty || $from.parent.type.name !== 'highlight' || $from.parentOffset !== $from.parent.content.size) return false;
+        const pos = $from.after();
+        return editor.chain().insertContentAt(pos, { type: 'paragraph' }).setTextSelection(pos + 1).run();
+      }
+    };
+  }
+});
+
 const LAYOUTS = [
   ['normal', 'Largura do texto', '<svg viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="12" rx="1.5"/></svg>'],
   ['outset', 'Largura expandida', '<svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5"/></svg>'],

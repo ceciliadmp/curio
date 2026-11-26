@@ -5,7 +5,7 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import BubbleMenu from '@tiptap/extension-bubble-menu';
 import FloatingMenu from '@tiptap/extension-floating-menu';
-import { PullQuote, Figure, Embed, TrailingNode } from './nodes.js';
+import { PullQuote, Highlight, Figure, Embed, TrailingNode } from './nodes.js';
 import { supabaseStore, localStore } from './store.js';
 
 const R = window.CurioRender;
@@ -23,6 +23,7 @@ const ICON = {
   divider: '<svg viewBox="0 0 24 24"><path d="M3 12h18"/><circle cx="12" cy="6" r=".6"/><circle cx="12" cy="18" r=".6"/></svg>',
   bold: '<b>B</b>', italic: '<i>I</i>',
   link: '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+  highlight: '<svg viewBox="0 0 24 24"><path d="M4 5v14M9 7h11M9 12h11M9 17h7"/></svg>',
   quote: '<svg viewBox="0 0 24 24"><path d="M7 7h4v4c0 3-1.5 5-4 6M14 7h4v4c0 3-1.5 5-4 6"/></svg>',
   check: '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>',
   x: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>'
@@ -258,7 +259,7 @@ async function viewEditor(id) {
         validate: href => !!R.safeUrl(href, true) }),
       Placeholder.configure({ placeholder: ({ node, editor: ed }) => node.type.name === 'heading' ? 'Título da seção' :
         (ed.state.doc.childCount <= 1 ? 'Conte sua história…' : '') , showOnlyCurrent: true, includeChildren: false }),
-      PullQuote, Figure, Embed, TrailingNode,
+      PullQuote, Highlight, Figure, Embed, TrailingNode,
       BubbleMenu.configure({ element: bubbleEl, tippyOptions: { duration: 120, placement: 'top', maxWidth: 'none', onHidden: () => linkMode(false) },
         shouldShow: ({ editor: ed, state, from, to }) => {
           if (from === to || !ed.isEditable) return false;
@@ -294,6 +295,7 @@ async function viewEditor(id) {
     ['sep'],
     ['h2', 'Título grande', 'T', () => editor.chain().focus().toggleHeading({ level: 2 }).run(), () => editor.isActive('heading', { level: 2 })],
     ['h3', 'Título pequeno', 't', () => editor.chain().focus().toggleHeading({ level: 3 }).run(), () => editor.isActive('heading', { level: 3 })],
+    ['highlight', 'Texto em destaque', ICON.highlight, () => editor.chain().focus().toggleHighlight().run(), () => editor.isActive('highlight')],
     ['quote', 'Citação de destaque', ICON.quote, () => editor.chain().focus().togglePullQuote().run(), () => editor.isActive('pullQuote')]
   ];
   bubbleEl.innerHTML = `<div class="bubble-tools">${BTN.map(b => b[0] === 'sep' ? '<span class="bsep"></span>' :
