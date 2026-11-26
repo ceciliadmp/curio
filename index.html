@@ -2442,9 +2442,9 @@ document.addEventListener('input',e=>{
   const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML();
 });
 function ddHTML(key,label,items,cur,count){
-  const opt=v=>`<li role="option" class="af-opt" tabindex="-1" data-v="${escH(v)}" aria-selected="${v===cur}"><svg class="af-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="af-name">${v?escH(v):'Todos'}</span><span class="af-count">${count(v)}</span></li>`;
+  const opt=v=>`<li role="option" class="af-opt" tabindex="-1" data-v="${escH(v)}" aria-selected="${v===cur}"><svg class="af-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="af-name">${v?escH(v):'Todos'}</span>${count?`<span class="af-count">${count(v)}</span>`:''}</li>`;
   return `<div class="art-filter" data-f="${key}"><span class="af-label" id="af-lbl-${key}">${label}</span>
-    <div class="af-wrap"><button type="button" class="af-btn" id="af-${key}" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="af-lbl-${key} af-${key}"><span class="af-name">${cur?escH(cur):'Todos'}</span><span class="af-count">${count(cur)}</span><svg class="af-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+    <div class="af-wrap"><button type="button" class="af-btn" id="af-${key}" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="af-lbl-${key} af-${key}"><span class="af-name">${cur?escH(cur):'Todos'}</span>${count?`<span class="af-count">${count(cur)}</span>`:''}<svg class="af-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
     <ul class="af-menu" role="listbox" aria-labelledby="af-lbl-${key}" hidden>${['',...items].map(opt).join('')}</ul></div></div>`;
 }
 function articleFilter(){
@@ -2461,7 +2461,7 @@ function authorFilter(){
   const names=articleAuthors(), all=allArticles();
   if(!names.length) return '';
   if(ART_AUTHOR && !names.includes(ART_AUTHOR)) ART_AUTHOR='';
-  return ddHTML('autor','Filtre por escritor(a)',names,ART_AUTHOR,n=>n?all.filter(a=>String(a.author_name||'').trim()===n).length:all.length);
+  return ddHTML('autor','Filtre por escritor(a)',names,ART_AUTHOR,null);
 }
 const AF={ tema:{set:v=>{ART_TAB=v;},html:()=>articleFilter()}, autor:{set:v=>{ART_AUTHOR=v;},html:()=>authorFilter()} };
 const afEls=f=>f&&{f,w:f.querySelector('.af-wrap'),btn:f.querySelector('.af-btn'),menu:f.querySelector('.af-menu'),opts:[...f.querySelectorAll('.af-opt')]};
