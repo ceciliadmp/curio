@@ -11,7 +11,7 @@
 .rich ul,.rich ol{padding-left:1.4em}
 .rich li{margin:0 0 8px}
 .rich li>p{margin:0}
-.rich p.text-highlight,.art-read .rich p.text-highlight{margin:32px 0!important;padding-left:32px!important;font-size:22px!important;line-height:36px!important}
+.rich p.text-highlight,.art-read .rich p.text-highlight{margin:32px 0!important;padding-left:32px!important;text-align:left!important;font-family:"Poppins",system-ui,sans-serif!important;font-weight:400!important;font-size:22px!important;line-height:36px!important}
 @media (max-width:599px){.rich p.text-highlight,.art-read .rich p.text-highlight{padding-left:20px!important;font-size:20px!important;line-height:32px!important}}
 .rich .pull-quote{margin:32px 0;padding:0;border:0;text-align:center;font:italic 400 24px/36px "Literata",Georgia,serif;color:#2B23A4}
 .rich .pull-quote p{margin:0}
