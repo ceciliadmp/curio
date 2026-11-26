@@ -2812,7 +2812,7 @@ document.querySelectorAll('.theme-sw').forEach(b=>b.addEventListener('click',()=
 window.addEventListener('hashchange',route);
 /* Mobile: "Voltar" flutuante no artigo. Some ao descer; volta ao subir ou ao tocar na tela. */
 (function(){
-  let lastY=scrollY, el=null;
+  let lastY=scrollY, acc=0, el=null, shown=false;
   const mq=matchMedia('(max-width:759px)');
   const orig=()=>document.querySelector('.page.article .art-back');
   const active=()=>{ const b=orig(); return mq.matches && b && b.getBoundingClientRect().bottom<0; };
@@ -2822,22 +2822,28 @@ window.addEventListener('hashchange',route);
       document.body.appendChild(el); }
     return el;
   }
+  /* posição fixa: altura da barra (sem depender da rolagem) e mesma margem do botão original */
   function place(e){
     const m=document.querySelector('.mast'), b=orig();
-    const top=m?Math.max(0,m.getBoundingClientRect().bottom):0;
-    e.style.top=(top+12)+'px';
-    if(b) e.style.left=b.getBoundingClientRect().left+'px';
+    e.style.top=((m?m.offsetHeight:72)+12)+'px';
+    if(b) e.style.left=Math.round(b.getBoundingClientRect().left)+'px';
   }
-  function set(on){ const e=ensure(); if(on) place(e); e.classList.toggle('show',on); e.tabIndex=on?0:-1; e.setAttribute('aria-hidden',String(!on)); }
-  addEventListener('scroll',()=>{ const y=scrollY, d=y-lastY; lastY=y;
-    if(!active()){ if(el) set(false); return; }
-    if(d>6) set(false); else if(d<-6) set(true);
+  function set(on){
+    if(on===shown) return; shown=on;
+    const e=ensure(); if(on) place(e);
+    e.classList.toggle('show',on); e.tabIndex=on?0:-1; e.setAttribute('aria-hidden',String(!on));
+  }
+  addEventListener('scroll',()=>{
+    const y=scrollY, d=y-lastY; lastY=y;
+    if(!active()){ set(false); acc=0; return; }
+    acc=(Math.sign(d)===Math.sign(acc))?acc+d:d;   // soma só enquanto a direção não muda
+    if(acc>32) set(false); else if(acc<-32) set(true);
   },{passive:true});
   document.addEventListener('pointerdown',e=>{
     if(!active() || (e.target.closest&&e.target.closest('a,button,input,select,textarea,.art-back-float'))) return;
     set(true);
   });
-  addEventListener('hashchange',()=>{ if(el) set(false); });
+  addEventListener('hashchange',()=>{ set(false); acc=0; });
 })();
 
 document.addEventListener('keydown',e=>{
