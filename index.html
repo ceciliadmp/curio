@@ -1268,7 +1268,13 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 .art-author{background:#EFEDFD!important;border:1.5px solid #E2DFFB!important}
 :root[data-theme="dark"] .art-author{background:#211B7E!important;border-color:#2B23A4!important}
 /* article cards: image on top, side by side; title and description clamped to 3 lines; a bit shorter */
-.art-band .agrid,.page .agrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}
+.page .agrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}
+/* home: no máximo 4 artigos, sempre em linhas completas (4 colunas ≥1100px, 2 entre 760 e 1099px) */
+.art-band .agrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important}
+@media (min-width:760px){.art-band .agrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media (min-width:1100px){.art-band .agrid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+.art-sentinel{grid-column:1/-1}
+.art-sentinel .curio-spin-wrap{padding:24px 0}
 .acard-illo{height:136px!important}
 .acard-body{padding:20px!important;gap:6px!important;min-width:0}
 .acard-title,.acard-desc{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
@@ -1371,7 +1377,6 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 :root[data-theme="dark"] .art-search svg{color:#D3F34F}
 :root[data-theme="dark"] .art-search input:focus{border-color:#D3F34F;box-shadow:none}
 .art-noresult{grid-column:1/-1}
-@media (max-width:759px){.art-band .agrid>.acard:nth-child(n+4){display:none}}
 @media (max-width:759px){.art-band{display:flex;flex-direction:column}.art-band-head{display:contents}.art-band-head h2{margin-bottom:24px}.art-band .agrid{order:1}.art-band .art-all{order:2;margin-top:24px;align-self:flex-start}}
 @media (max-width:599px){.art-read .rich .pull-quote,.art-read .rich .pull-quote p,.rich .pull-quote{font-size:18px!important;line-height:30px!important}}
 .rich .pull-quote,.rich .pull-quote p,.art-read .rich .pull-quote,.art-read .rich .pull-quote p{text-align:left!important;font-style:normal!important;font-weight:400!important}
@@ -1470,10 +1475,20 @@ svg path{stroke-linecap:round;stroke-linejoin:round}
 <script>
 /* Começa a buscar a lista de artigos antes do resto da página carregar (sem o corpo dos artigos, que é pesado). */
 (function(){var c=window.CURIO_CONFIG||{};if(!c.supabaseUrl||!c.supabaseAnonKey)return;
-window.__curioList=fetch(c.supabaseUrl.replace(/\/$/,'')+'/rest/v1/articles?select=slug,title,subtitle,display_title,display_subtitle,cover_url,cover_focal_x,cover_focal_y,tags,reading_minutes,published_at,author_name,author_url,author_photo_url&status=eq.published&order=published_at.desc',{headers:{apikey:c.supabaseAnonKey}})
-.then(function(r){if(r.ok)return r.json();
+var COLS='slug,title,subtitle,display_title,display_subtitle,cover_url,cover_focal_x,cover_focal_y,tags,reading_minutes,published_at,author_name,author_photo_url';
+/* o={limit,offset,select,tags,not}: sem limit traz tudo (a partir de offset).
+   tags: só artigos com pelo menos uma dessas tags; not: deixa de fora esse slug. */
+var pgArr=function(l){return '{'+l.map(function(t){return '"'+String(t).replace(/["\\]/g,'\\$&')+'"';}).join(',')+'}';};
+window.__curioFetchList=function(o){o=o||{};
+var filt=(o.tags&&o.tags.length?'&tags=ov.'+encodeURIComponent(pgArr(o.tags)):'')+(o.not?'&slug=neq.'+encodeURIComponent(o.not):'');
+var get=function(sel){return fetch(c.supabaseUrl.replace(/\/$/,'')+'/rest/v1/articles?select='+sel+'&status=eq.published'+filt+'&order=published_at.desc,slug.asc'+(o.limit?'&limit='+o.limit:'')+(o.offset?'&offset='+o.offset:''),{headers:{apikey:c.supabaseAnonKey}});};
+return get(o.select||COLS+',author_url').then(function(r){if(r.ok)return r.json();
 /* banco ainda sem a coluna author_url: busca de novo sem ela */
-return fetch(c.supabaseUrl.replace(/\/$/,'')+'/rest/v1/articles?select=slug,title,subtitle,display_title,display_subtitle,cover_url,cover_focal_x,cover_focal_y,tags,reading_minutes,published_at,author_name,author_photo_url&status=eq.published&order=published_at.desc',{headers:{apikey:c.supabaseAnonKey}}).then(function(r2){if(!r2.ok)throw new Error('HTTP '+r2.status);return r2.json();});});window.__curioList.catch(function(){});})();
+if(o.select)throw new Error('HTTP '+r.status);
+return get(COLS).then(function(r2){if(!r2.ok)throw new Error('HTTP '+r2.status);return r2.json();});});};
+/* Primeira página: a home mostra 4; as outras páginas começam com 10. */
+window.__curioFirstLimit=(location.pathname==='/'&&!location.hash.slice(1))?4:10;
+window.__curioList=window.__curioFetchList({limit:window.__curioFirstLimit});window.__curioList.catch(function(){});})();
 </script>
 </head>
 <body>
@@ -2313,7 +2328,10 @@ function viewAbout(){
 
 /* ---------- Artigos (conteúdo próprio da Curió) ---------- */
 const ARTICLES = []; /* os artigos vêm do admin (Supabase) */
-const articleById = id => allArticles().find(a=>a.id===id);
+/* EXTRA: artigos que vieram da busca de relacionados (fora das páginas da lista). Não entram em
+   DB_ARTICLES pra não bagunçar o offset da paginação, mas abrem direto sem baixar a lista toda. */
+const EXTRA = {};
+const articleById = id => allArticles().find(a=>a.id===id) || EXTRA[id];
 const ARTICLE_SHAPES = {};
 const ARTICLE_BANDS = {};
 /* Artigos publicados pelo admin (Supabase). */
@@ -2321,7 +2339,7 @@ let DB_ARTICLES = [];
 const allArticles = () => DB_ARTICLES; /* só os artigos publicados pelo admin */
 const fmtPub = iso => { const d=new Date(iso); return isNaN(d)?'':d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}); };
 const escH = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const LIST_CACHE='curio-articles-v1';
+const LIST_CACHE='curio-articles-v2'; /* guarda só a primeira página */
 const DOCS={}; /* corpo dos artigos já baixados, por slug */
 const mapRow=x=>({ id:x.slug, db:true, tag:(x.tags&&x.tags[0])||'Artigo', min:x.reading_minutes||1,
   title:x.display_title||x.title, desc:x.display_subtitle||x.subtitle||'', articleTitle:x.title, articleSub:x.subtitle||'',
@@ -2343,6 +2361,7 @@ async function loadDbArticles(){
   try{
     if(!c.supabaseUrl||!c.supabaseAnonKey||!window.CurioRender) return;
     const rows=await (window.__curioList||Promise.reject(new Error('sem busca')));
+    DB_DONE=rows.length<(window.__curioFirstLimit||Infinity);
     const fresh=JSON.stringify(rows);
     if(fresh!==cachedList){ changed=true; setRows(rows); try{ localStorage.setItem(LIST_CACHE,fresh); }catch(e){} }
   }catch(e){ /* sem conexão com o banco: fica a lista guardada, se houver */ }
@@ -2351,6 +2370,22 @@ async function loadDbArticles(){
     window.__curioDbLoaded=true;
     if(changed||first) rerouteArticles();
   }
+}
+/* Paginação no servidor: DB_ARTICLES cresce aos poucos; DB_DONE diz se já veio tudo.
+   fetchMore(n) garante pelo menos n artigos baixados (sem n: todos). Uma busca por vez. */
+let DB_DONE=false, listBusy=null;
+function fetchMore(upTo){
+  if(DB_DONE||(upTo&&DB_ARTICLES.length>=upTo)) return Promise.resolve(true);
+  if(!window.__curioFetchList) return Promise.resolve(false);
+  if(listBusy) return listBusy.then(()=>fetchMore(upTo));
+  const off=DB_ARTICLES.length, limit=upTo?upTo-off:0;
+  listBusy=window.__curioFetchList({limit:limit||0,offset:off}).then(rows=>{
+    const have=new Set(DB_ARTICLES.map(a=>a.id));
+    DB_ARTICLES=DB_ARTICLES.concat(rows.filter(x=>x&&x.slug&&!have.has(x.slug)).map(mapRow));
+    if(!limit||rows.length<limit) DB_DONE=true;
+    return true;
+  },()=>false).finally(()=>{ listBusy=null; });
+  return listBusy;
 }
 /* O corpo do artigo só é baixado quando alguém abre o artigo. */
 const bodyLoading={};
@@ -2365,7 +2400,7 @@ function loadArticleBody(slug){
 }
 function skeletonBand(){
   const card='<div class="acard skel" aria-hidden="true"><span class="acard-illo"></span><span class="acard-body"><span class="sk sk-s"></span><span class="sk sk-l"></span><span class="sk sk-m"></span><span class="sk sk-m"></span></span></div>';
-  return `<section class="art-band" aria-label="Carregando artigos" aria-busy="true"><div class="art-band-head"><h2>Artigos mais recentes</h2></div><div class="agrid">${card.repeat(6)}</div></section>`;
+  return `<section class="art-band" aria-label="Carregando artigos" aria-busy="true"><div class="art-band-head"><h2>Artigos mais recentes</h2></div><div class="agrid">${card.repeat(4)}</div></section>`;
 }
 function articleCard(a){
   if(a.db){
@@ -2397,10 +2432,33 @@ function authorBlock(a){
   const ph=a.author_photo?`<img src="${escH(a.author_photo)}" alt="" loading="lazy">`:`<span aria-hidden="true">${escH(ini)}</span>`;
   return `<footer class="art-author"><span class="art-author-photo">${ph}</span><span class="art-author-txt"><span class="art-author-by">Escrito por</span><span class="art-author-name">${escH(a.author_name)}</span>${a.author_url?`<a class="art-author-loc art-author-link" href="${escH(a.author_url)}" target="_blank" rel="noopener noreferrer">${escH(prettyUrl(a.author_url))}</a>`:''}</span></footer>`;
 }
+/* Continue lendo: até 2 artigos com tag em comum (mais novos primeiro); se faltar, completa com os mais recentes.
+   A lista baixada é sempre o começo da ordem por data, então se ela já tem 2 da mesma tag, são esses mesmos.
+   Se não tem e ainda falta lista, pergunta ao banco só pelos da mesma tag (RELATED guarda a resposta). */
+const RELATED={}, relBusy={};
+const sameTag=(a,x)=>x.id!==a.id&&(x.tags||[]).some(t=>a.tags.includes(t));
+function pickRelated(a){
+  const out=(RELATED[a.id]||allArticles().filter(x=>sameTag(a,x))).slice(0,2);
+  for(const x of allArticles()){ if(out.length>=2) break; if(x.id!==a.id&&!out.some(y=>y.id===x.id)) out.push(x); }
+  return out;
+}
+const moreSection=list=>list.length?`<section class="art-more"><h2>Continue lendo</h2><div class="agrid">${list.map(articleCard).join('')}</div></section>`:'';
+function loadRelated(a){
+  if(RELATED[a.id]||relBusy[a.id]||DB_DONE||!a.tags.length||!window.__curioFetchList) return;
+  if(allArticles().filter(x=>sameTag(a,x)).length>=2) return;
+  relBusy[a.id]=true;
+  window.__curioFetchList({tags:a.tags,not:a.id,limit:2}).then(rows=>{
+    RELATED[a.id]=rows.filter(x=>x&&x.slug).map(x=>{ const m=mapRow(x); const have=articleById(m.id); if(!have) EXTRA[m.id]=m; return have||m; });
+    /* troca só a seção, sem re-renderizar a página (route() volta o scroll pro topo) */
+    const box=routeKey()==='artigo-'+a.id&&document.getElementById('art-cont');
+    if(box) box.innerHTML=moreSection(pickRelated(a));
+  },()=>{}).finally(()=>{ relBusy[a.id]=false; });
+}
 function viewArticle(a){
   const others=allArticles().filter(x=>x!==a).slice(0,2);
   if(a.db){
     if(!DOCS[a.id]) setTimeout(()=>loadArticleBody(a.id),0);
+    setTimeout(()=>loadRelated(a),0);
     const t=escH(a.articleTitle);
     return `<article class="view page article bg-50">
     <a class="art-back" href="#artigos" data-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Voltar</a>
@@ -2408,7 +2466,7 @@ function viewArticle(a){
     <p class="art-meta">${escH(a.tag)} · ${a.min} min de leitura${a.published?` · <time datetime="${escH(a.published)}">Publicado em ${fmtPub(a.published)}</time>`:''}</p>
     ${authorByline(a)}
     <div class="art-read">${DOCS[a.id]?`<div class="rich">${CurioRender.toHTML(DOCS[a.id])}</div>${authorBlock(a)}`:'<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigo…</span></div>'}</div>
-    ${others.length?`<section class="art-more"><h2>Continue lendo</h2><div class="agrid">${others.map(articleCard).join('')}</div></section>`:''}
+    <div id="art-cont">${moreSection(pickRelated(a))}</div>
   </article>`;
   }
   const rel=a.related.map(id=>itemById(id)).filter(Boolean);
@@ -2431,7 +2489,7 @@ let ART_TAB='';
 const tagsOf=a=>(Array.isArray(a.tags)?a.tags:[a.tag]).map(t=>String(t||'').trim()).filter(Boolean);
 function articleTags(){
   const m=new Map();
-  allArticles().forEach(a=>tagsOf(a).forEach(t=>{ const k=t.toLocaleLowerCase('pt-BR'); if(!m.has(k)) m.set(k,t); }));
+  facetRows().forEach(a=>tagsOf(a).forEach(t=>{ const k=t.toLocaleLowerCase('pt-BR'); if(!m.has(k)) m.set(k,t); }));
   return [...m.values()].sort((x,y)=>x.localeCompare(y,'pt-BR',{sensitivity:'base'}));
 }
 let ART_Q='', ART_AUTHOR='';
@@ -2444,9 +2502,66 @@ function filteredArticles(){
   if(q){ const words=q.split(/\s+/); list=list.filter(a=>{ const hay=normQ([a.title,a.articleTitle,a.desc,a.author_name,...tagsOf(a)].join(' ')); return words.every(w=>hay.includes(w)); }); }
   return list;
 }
+/* Rolagem infinita: mostra ART_SHOWN cards e soma 10 quando o fim da lista aparece.
+   Sem busca/filtro, os artigos vêm do servidor de 10 em 10. Com busca/filtro, baixa o que falta
+   uma vez e filtra a lista completa aqui. */
+const ART_PAGE=10;
+let ART_SHOWN=ART_PAGE, artBusy=false, artIO=null;
+const artFiltering=()=>!!(ART_TAB||ART_AUTHOR||normQ(ART_Q).trim());
+const artSpin='<div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigos…</span></div>';
+const artSentinel=()=>`<div class="art-sentinel" id="art-more">${artSpin}</div>`;
+const artHasMore=l=>l.length>ART_SHOWN||(!artFiltering()&&!DB_DONE);
 function artListHTML(){
+  const filt=artFiltering();
+  if(filt&&!DB_DONE){ setTimeout(artFill,0); return artSpin; }
   const l=filteredArticles();
-  return l.length?l.map(articleCard).join(''):`<p class="art-empty art-noresult">Nenhum artigo encontrado${ART_Q.trim()?` para “${escH(ART_Q.trim())}”`:''}. Tente outra palavra.</p>`;
+  if(!filt&&!DB_DONE&&l.length<ART_SHOWN) setTimeout(artFill,0);
+  if(!l.length) return filt||DB_DONE?`<p class="art-empty art-noresult">Nenhum artigo encontrado${ART_Q.trim()?` para “${escH(ART_Q.trim())}”`:''}. Tente outra palavra.</p>`:artSpin;
+  return l.slice(0,ART_SHOWN).map(articleCard).join('')+(artHasMore(l)?artSentinel():'');
+}
+/* Garante os dados para ART_SHOWN cards e acrescenta os que faltam no fim da lista. */
+async function artFill(){
+  if(artBusy) return; artBusy=true;
+  let ok=true;
+  try{
+    const filt=artFiltering();
+    if(!DB_DONE&&(filt||DB_ARTICLES.length<ART_SHOWN)&&!(ok=await fetchMore(filt?0:ART_SHOWN))) return;
+    const g=document.getElementById('art-list'); if(!g) return;
+    if(!g.querySelector('.acard')){ g.innerHTML=artListHTML(); return; }
+    const l=filteredArticles(), shown=g.querySelectorAll('.acard').length, s=document.getElementById('art-more');
+    if(s) s.remove();
+    g.insertAdjacentHTML('beforeend',l.slice(shown,ART_SHOWN).map(articleCard).join('')+(artHasMore(l)?artSentinel():''));
+  }finally{ artBusy=false; ok?artWatch():setTimeout(artWatch,5000); /* sem conexão: tenta de novo daqui a pouco */ }
+}
+function artWatch(){
+  if(artIO) artIO.disconnect();
+  const s=document.getElementById('art-more'); if(!s||!('IntersectionObserver' in window)) return;
+  artIO=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)&&!artBusy){ ART_SHOWN+=ART_PAGE; artFill(); } },{rootMargin:'600px 0px'});
+  artIO.observe(s);
+}
+/* Busca ou filtro mudou: volta para os 10 primeiros. */
+function refreshArtList(){
+  ART_SHOWN=ART_PAGE;
+  const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML();
+  artWatch();
+}
+/* Opções dos filtros (temas, escritores e contagens) valem para todos os artigos:
+   enquanto a lista não veio inteira, busca só tags e autor(a) de todos. */
+let ART_FACETS=null, facetsBusy=false;
+const facetRows=()=>DB_DONE?allArticles():(ART_FACETS||allArticles());
+function loadFacets(){
+  if(DB_DONE||ART_FACETS||facetsBusy||!window.__curioFetchList) return;
+  facetsBusy=true;
+  window.__curioFetchList({select:'tags,author_name'}).then(rows=>{
+    ART_FACETS=rows.map(x=>({tags:Array.isArray(x.tags)?x.tags:[],tag:(x.tags&&x.tags[0])||'Artigo',author_name:x.author_name||''}));
+    const box=document.querySelector('.art-filters'); if(!box) return;
+    ['tema','autor'].forEach(k=>{
+      const f=box.querySelector(`.art-filter[data-f="${k}"]`);
+      if(f&&!f.querySelector('.af-menu').hidden) return; /* menu aberto: não mexe */
+      const h=AF[k].html();
+      if(f) f.outerHTML=h; else if(h) box.querySelector('.art-search-toggle').insertAdjacentHTML('beforebegin',h);
+    });
+  }).catch(()=>{}).finally(()=>{ facetsBusy=false; });
 }
 function articleSearch(){
   return `<div class="art-search" role="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="art-q" placeholder="Busque por palavra-chave, tema ou autor(a)" aria-label="Buscar artigos" autocomplete="off" value="${escH(ART_Q)}"></div>`;
@@ -2454,7 +2569,7 @@ function articleSearch(){
 document.addEventListener('input',e=>{
   if(!e.target||e.target.id!=='art-q') return;
   ART_Q=e.target.value;
-  const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML();
+  refreshArtList();
 });
 function ddHTML(key,label,items,cur,count){
   const opt=v=>`<li role="option" class="af-opt" tabindex="-1" data-v="${escH(v)}" aria-selected="${v===cur}"><svg class="af-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="af-name">${v?escH(v):'Todos'}</span>${count?`<span class="af-count">${count(v)}</span>`:''}</li>`;
@@ -2463,13 +2578,13 @@ function ddHTML(key,label,items,cur,count){
     <ul class="af-menu" role="listbox" aria-labelledby="af-lbl-${key}" hidden>${['',...items].map(opt).join('')}</ul></div></div>`;
 }
 function articleFilter(){
-  const tags=articleTags(), all=allArticles();
+  const tags=articleTags(), all=facetRows();
   if(ART_TAB && !tags.includes(ART_TAB)) ART_TAB='';
   const k=t=>t.toLocaleLowerCase('pt-BR');
   return ddHTML('tema','Filtre por tema',tags,ART_TAB,t=>t?all.filter(a=>tagsOf(a).some(x=>k(x)===k(t))).length:all.length);
 }
 function articleAuthors(){
-  const set=new Set(); allArticles().forEach(a=>{ const n=String(a.author_name||'').trim(); if(n) set.add(n); });
+  const set=new Set(); facetRows().forEach(a=>{ const n=String(a.author_name||'').trim(); if(n) set.add(n); });
   return [...set].sort((x,y)=>x.localeCompare(y,'pt-BR',{sensitivity:'base'}));
 }
 function authorFilter(){
@@ -2490,7 +2605,7 @@ const afCloseAll=except=>document.querySelectorAll('.art-filter').forEach(f=>{ i
 function afPick(f,v){
   const key=f.dataset.f; AF[key].set(v);
   f.outerHTML=AF[key].html();
-  const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML();
+  refreshArtList();
   const b=document.getElementById('af-'+key); if(b) b.focus();
 }
 document.addEventListener('click',e=>{
@@ -2524,7 +2639,7 @@ document.addEventListener('click',e=>{
   box.classList.toggle('searching',on); b.setAttribute('aria-expanded',String(on)); b.setAttribute('aria-label',on?'Fechar busca':'Buscar artigos');
   const q=document.getElementById('art-q');
   if(on){ q&&q.focus(); }
-  else if(ART_Q){ ART_Q=''; if(q) q.value=''; const g=document.getElementById('art-list'); if(g) g.innerHTML=artListHTML(); }
+  else if(ART_Q){ ART_Q=''; if(q) q.value=''; refreshArtList(); }
 });
 function viewArticles(){
   return `<section class="view page bg-50">
@@ -2599,7 +2714,7 @@ function viewLanding(){
     </div>
     ${!allArticles().length&&!window.__curioDbLoaded?skeletonBand():''}${allArticles().length?`<section class="art-band" aria-labelledby="art-title">
       <div class="art-band-head"><h2 id="art-title">Artigos mais recentes</h2><a class="go-r art-all" href="#artigos" aria-label="Ver todos os artigos">Ver todos ${ARROW}</a></div>
-      <div class="agrid">${allArticles().slice(0,6).map(articleCard).join('')}</div>
+      <div class="agrid">${allArticles().slice(0,4).map(articleCard).join('')}</div>
     </section>`:''}
     <section class="fb-band" aria-labelledby="fb-title">
       <div class="fb-inner">
@@ -2711,9 +2826,13 @@ function route(){
   else if(h.startsWith('c-') && catOf(h.slice(2))){ const c=catOf(h.slice(2)); S=secOfCat(c.id); html=viewCategory(c); title=c.name+' · Curió'; }
   else if(h.startsWith('v-') && itemById(h.slice(2))){ const b=itemById(h.slice(2)); S=secOfCat(b.cat); html=viewItem(b); after=()=>mountDemo(b,S); title=b.name+' · Curió'; }
   else if(h==='sobre'||h==='quem-somos'){ html=viewAbout(); title='Sobre · Curió'; nav='sobre'; }
-  else if(h==='artigos'){ html=viewArticles(); title='Artigos · Curió'; nav='artigos'; }
+  else if(h==='artigos'){ html=viewArticles(); after=()=>{ loadFacets(); artWatch(); }; title='Artigos · Curió'; nav='artigos'; }
   else if(h.startsWith('artigo-') && articleById(h.slice(7))){ const a=articleById(h.slice(7)); html=viewArticle(a); title=(a.articleTitle||a.title)+' · Curió'; nav='artigos'; }
   else if(h.startsWith('artigo-') && !window.__curioDbLoaded && app.querySelector('[data-prerender]')){ html=app.innerHTML; nav='artigos'; }
+  else if(h.startsWith('artigo-') && window.__curioDbLoaded && !DB_DONE && window.__curioFetchList){
+    /* artigo fora das páginas já baixadas: busca o resto da lista e tenta de novo */
+    fetchMore().then(ok=>{ if(ok&&routeKey()===h) route(); });
+    html=app.querySelector('[data-prerender]')?app.innerHTML:'<section class="view page bg-50">'+artSpin+'</section>'; nav='artigos'; }
   else if(h.startsWith('artigo-') && !window.__curioDbLoaded){ html='<section class="view page bg-50"><div class="curio-spin-wrap" role="status"><span class="curio-spin" aria-hidden="true"></span><span class="sr-only">Carregando artigo…</span></div></section>'; nav='artigos'; }
   else if(h==='trilhas'){ html=viewTrails(); title='Trilhas · Curió'; nav='trilhas'; }
   else if(h==='design-comportamental'){ html=viewTrail(); title='Design Comportamental · Curió'; nav='trilhas'; }
@@ -2877,7 +2996,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape' && q && document.activeElement===q){q.value='';query='';renderResults();}
 });
 route();
-loadDbArticles();
+listBusy=loadDbArticles().finally(()=>{ listBusy=null; }); /* fetchMore espera a primeira página */
 </script>
 
 </body>
